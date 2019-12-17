@@ -26,12 +26,23 @@ from maphash import maps
 
 time_notification = 0
 # time_notification = 2
+
+# thundertac uses the wt gamechat as a command relay system
+# every iteration of the main loop (not the child record loop)
+# checks the gamechat messages; define tac master here
 ttac_mas = "diVineProportion"
+
+# multi client command to tell thundertac to start recording
+# test flights should be automatic
 ttac_rec = "go"
 filename = "thundertac.acmi"
 gilrnsmr = None
+# test flight has 2 modes; test flight mode and mission mode
+# one of the following two will tell force recording when in the 
+# mission mode (which has same window title as ranked matches)
 mode_test = False
 mode_debug = False
+
 object_id = False
 time_rec_start = None
 synced_chat_start = True
@@ -93,22 +104,16 @@ def get_utc_offset():
         except ntplib.NTPException as get_msg_err:
             pass
     # time offset is the difference between the users clock and the worldwide time synced NTP protocol
-    time_offset = (
-        ntpreq.recv_time - ntpreq.orig_time + ntpreq.tx_time - ntpreq.dest_time
-    ) / 2
+    time_offset = (ntpreq.recv_time - ntpreq.orig_time + ntpreq.tx_time - ntpreq.dest_time) / 2
     # record start time is the client synced UTC starting time with the offset included.
-    record_start_time = str(arrow.get(arrow.utcnow().float_timestamp + time_offset))[
-        :-6
-    ]
+    record_start_time = str(arrow.get(arrow.utcnow().float_timestamp + time_offset))[:-6]
     return record_start_time
 
 
 def get_filename():
     # TODO: Move to userinfo module
     sdate, stime = (str(arrow.utcnow())[:-13]).replace(":", ".").split("T")
-    return "[{},{}]_[{}@{}]".format(
-        sdate, stime, constants.PLAYERS_UID, constants.PLAYERS_CID
-    )
+    return "[{},{}]_[{}@{}]".format(sdate, stime, constants.PLAYERS_UID, constants.PLAYERS_CID)
 
 
 def get_web_reqs(req_type):
@@ -148,8 +153,13 @@ def parachute_down(init_altitude):
 
 def insert_header(reference_time):
     """Insertion of mandatory .acmi header data + valuable information for current battle"""
-    header_mandatory = ("FileType={filetype}\n" "FileVersion={acmiver}\n").format(
-        filetype="text/acmi/tacview", acmiver="2.1"
+   
+    header_mandatory = (
+        "FileType={filetype}\n" 
+        "FileVersion={acmiver}\n"
+    ).format(
+        filetype="text/acmi/tacview", 
+        acmiver="2.1"
     )
 
     header_text_prop = (
@@ -179,8 +189,12 @@ def insert_header(reference_time):
     )
 
     header_numb_prop = (
-        "0,ReferenceLongitude={reflong}\n" "0,ReferenceLatitude={reflati}\n"
-    ).format(reflong="0", reflati="0")
+        "0,ReferenceLongitude={reflong}\n" 
+        "0,ReferenceLatitude={reflati}\n"
+    ).format(
+        reflong="0", 
+        reflati="0"
+    )
 
     with open("{}.acmi".format(filename), "a", newline="") as g:
         g.write(header_mandatory + header_text_prop + header_numb_prop)
@@ -220,8 +234,6 @@ def get_map_info():
             long = map_total_y / 111320
             break
         except NameError as err:
-            # WTF: no idea why i put this here
-            # loguru.logger.debug("Map information received")
             loguru.logger.exception(str(err))
     return lat, long
 
@@ -332,28 +344,12 @@ while True:
                         )
                         g.write(
                             "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},Name=Parachute,Type=Air+Parachutist,Coalition=Allies,Color=Blue,AGL={}\n".format(
-                                parachute_align_gravity,
-                                state.PARACHUTE,
-                                x,
-                                y,
-                                z - 15,
-                                0,
-                                0,
-                                h,
-                                z - 15,
+                                parachute_align_gravity, state.PARACHUTE, x, y, z - 15, 0, 0, h, z - 15,
                             )
                         )
                         g.write(
                             "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},Name=Parachute,Type=Air+Parachutist,Coalition=Allies,Color=Blue,AGL={}\n".format(
-                                parachute_touchdown_time,
-                                state.PARACHUTE,
-                                x,
-                                y,
-                                0,
-                                0,
-                                0,
-                                h,
-                                0,
+                                parachute_touchdown_time, state.PARACHUTE, x, y, 0, 0, 0, h, 0,
                             )
                         )
                         g.write(
