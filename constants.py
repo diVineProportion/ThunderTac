@@ -1,5 +1,6 @@
 # see note in state.py
 
+# TODO: migrate anything realted to the following imports to userinfo module
 from os import environ
 from getpass import getuser
 
