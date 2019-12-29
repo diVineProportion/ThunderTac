@@ -22,7 +22,8 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 REM PyPI version has problems (v3.5) use development version from github (~v4.0)
 pip install https://github.com/pyinstaller/pyinstaller/archive/develop.tar.gz
-wget https://github.com/mhammond/pywin32/releases/download/b227/pywin32-227.win-amd64-py3.7.exe
+pip install wget
+python getpywin32.py
 REM use easy install to install extensions in venv
 easy_install pywin32-227.win-amd64-py3.7.exe
 REM delete pywin32 after use

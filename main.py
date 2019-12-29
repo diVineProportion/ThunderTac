@@ -27,11 +27,22 @@ from maphash import maps
 time_notification = 0
 # time_notification = 2
 
+config = configparser.ConfigParser()
+
+# if not os.path.exists('config.ini'):
+#     config['DEFAULT'] = {'tac_master': input("Insert the Tac Master Alias (Do not include squadron)")
+#                          'tac_client': input("Insert War Thunder Alias (Do not include squadron)"),
+#                          'rec_string': 'ttac.rec'}
+#     with open('config.ini', 'w') as f:
+#         config.write(f)
+
+config.read('config.ini')
+
+
 # thundertac uses the wt gamechat as a command relay system
 # every iteration of the main loop (not the child record loop)
 # checks the gamechat messages; define tac master here
-config = configparser.ConfigParser()
-config.read("config.ini")
+
 ttac_mas = config['general']['tac_master']
 # multi client command to tell thundertac to start recording
 # test flights should be automatic
