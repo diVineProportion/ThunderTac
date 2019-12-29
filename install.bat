@@ -23,6 +23,7 @@ pip install -r requirements.txt
 REM PyPI version has problems (v3.5) use development version from github (~v4.0)
 pip install https://github.com/pyinstaller/pyinstaller/archive/develop.tar.gz
 pip install wget
+REM auto fetch and install
 python getpywin32.py
 REM use easy install to install extensions in venv
 easy_install pywin32-227.win-amd64-py3.7.exe
