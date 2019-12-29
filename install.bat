@@ -25,3 +25,5 @@ pip install https://github.com/pyinstaller/pyinstaller/archive/develop.tar.gz
 wget https://github.com/mhammond/pywin32/releases/download/b227/pywin32-227.win-amd64-py3.7.exe
 REM use easy install to install extensions in venv
 easy_install pywin32-227.win-amd64-py3.7.exe
+REM delete pywin32 after use
+del https://github.com/mhammond/pywin32/releases/download/b227/pywin32-227.win-amd64-py3.7.exe

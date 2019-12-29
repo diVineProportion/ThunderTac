@@ -1,4 +1,4 @@
-
+import configparser
 import json
 import math
 import os
@@ -30,15 +30,16 @@ time_notification = 0
 # thundertac uses the wt gamechat as a command relay system
 # every iteration of the main loop (not the child record loop)
 # checks the gamechat messages; define tac master here
-ttac_mas = "diVineProportion"
-
+config = configparser.ConfigParser()
+config.read("config.ini")
+ttac_mas = config['general']['tac_master']
 # multi client command to tell thundertac to start recording
 # test flights should be automatic
-ttac_rec = "go"
+ttac_rec = config['general']['rec_string']
 filename = "thundertac.acmi"
 gilrnsmr = None
 # test flight has 2 modes; test flight mode and mission mode
-# one of the following two will tell force recording when in the 
+# one of the following two will tell force recording when in the
 # mission mode (which has same window title as ranked matches)
 mode_test = False
 mode_debug = False
@@ -56,7 +57,10 @@ displayed_game_state_batt = False
 displayed_new_spawn_detected = False
 x = y = z = r = p = h = None
 
-# loguru.logger.add("file_{time}.log", level="INFO", rotation="100 MB")
+with open('wtunits.json', 'r', encoding='utf-8') as f:
+    unit_lookup = json.loads(f.read())
+
+# loguru.logger.add("file_{time}.log", level="ERROR", rotation="100 MB")
 
 
 def get_ver_info():  # TODO: test for cases list_possibilites[1:2]
@@ -122,7 +126,7 @@ def get_web_reqs(req_type):
         request = requests.get("http://localhost:8111/" + req_type, timeout=0.1)
         if request.status_code == requests.codes.ok and request is not None:
             return request.json()
-    except requests.exceptions.RequestException as err:
+    except (requests.exceptions.RequestException, json.decoder.JSONDecodeError) as err:
         pass
 
 
@@ -153,12 +157,12 @@ def parachute_down(init_altitude):
 
 def insert_header(reference_time):
     """Insertion of mandatory .acmi header data + valuable information for current battle"""
-   
+
     header_mandatory = (
         "FileType={filetype}\n" 
         "FileVersion={acmiver}\n"
     ).format(
-        filetype="text/acmi/tacview", 
+        filetype="text/acmi/tacview",
         acmiver="2.1"
     )
 
@@ -192,7 +196,7 @@ def insert_header(reference_time):
         "0,ReferenceLongitude={reflong}\n" 
         "0,ReferenceLatitude={reflati}\n"
     ).format(
-        reflong="0", 
+        reflong="0",
         reflati="0"
     )
 
@@ -233,8 +237,8 @@ def get_map_info():
             lat = map_total_x / 111302
             long = map_total_y / 111320
             break
-        except NameError as err:
-            loguru.logger.exception(str(err))
+        except (TypeError, NameError) as err:
+            loguru.logger.error(str(err))
     return lat, long
 
 
@@ -283,16 +287,16 @@ while True:
                 if last_msg == ttac_rec:
                     if last_sender == ttac_mas:
                         loguru.logger.debug("RECORD: Manual recording initiated")
-                        loguru.logger.info(
-                            "RECORD: String trigger recognized; All client recorders are running"
-                        )
+                        loguru.logger.info("RECORD: String trigger recognized; All client recorders are running")
                         time_rec_start = time.time()
-                        make_active(game_state())
+                        loguru.logger.debug("TIME: Session Start=" + str(time_rec_start))
+                        wt2lat, wt2long = get_map_info()
+                        loguru.logger.info("STATE: In Battle")
+                        insert_sortie_subheader = True
                         state.loop_record = True
+                        # make_active(game_state())
                     elif last_sender is not ttac_mas:
-                        loguru.logger.critical(
-                            "RECORD: You do not have permission to start the recorders"
-                        )
+                        loguru.logger.critical("RECORD: You do not have permission to start the recorders")
             else:
                 pass
 
@@ -305,6 +309,8 @@ while True:
             if game_state() == "War Thunder":
                 loguru.logger.info("game mode: in hangar")
                 state.loop_record = False
+            else:
+                pass
 
             loguru.logger.exception(str(err))
 
@@ -416,85 +422,89 @@ while True:
                     gear = 1
 
             ind = get_web_reqs(constants.BMAP_INDIC)
-            if ind is not None and ind["valid"]:
-                try:
-                    ind = get_web_reqs(constants.BMAP_INDIC)
+            try:
+                if ind is not None and ind["valid"]:
                     try:
-                        r = ind["aviahorizon_roll"] * -1
-                        p = ind["aviahorizon_pitch"] * -1
-                    except KeyError as err_plane_not_compatible:
-                        print("This plane is currently not supported")
-                        input("Press the any key to exit..")
-                        sys.exit()
-                    unit = ind["type"]
-                    if not displayed_new_spawn_detected:
-                        loguru.logger.info(
-                            "PLAYER: New spwan detected; UNIT: {}".format(unit)
+                        ind = get_web_reqs(constants.BMAP_INDIC)
+                        try:
+                            r = ind["aviahorizon_roll"] * -1
+                            p = ind["aviahorizon_pitch"] * -1
+                        except KeyError as err_plane_not_compatible:
+                            print("This plane is currently not supported")
+                            input("Press the any key to exit..")
+                            sys.exit()
+                        unit = ind["type"]
+                        if not displayed_new_spawn_detected:
+                            if unit_lookup[unit]:
+                                loguru.logger.info("PLAYER: New spwan detected; UNIT: {}".format(unit_lookup[unit]['full']))
+                            else:
+                                loguru.logger.info("PLAYER: New spwan detected; UNIT: {}".format(unit))
+                            displayed_new_spawn_detected = True
+                    except KeyError:
+                        pass
+                        # TODO: Function to handle all non-existent or error prone indicator/state values
+                    try:
+                        pedals = ind["pedals"]
+                    except KeyError as e:
+                        pedals = ind["pedals1"]
+                    stick_ailerons = ind["stick_ailerons"]
+                    stick_elevator = ind["stick_elevator"]
+
+                    try:
+                        h = ind["compass"]
+                    except KeyError as err:
+                        h = hdg(player["dx"], player["dy"])
+
+                    if not run_once_per_spawn:
+                        with open('wtunits.json', 'r', encoding='utf-8') as fr:
+                            unit_info = json.loads(fr.read())
+                            fname, lname, sname = unit_info[unit].values()
+                        run_once_per_spawn = True
+
+                    sortie_telemetry = (
+                        "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},".format(
+                            time_adjusted_tick, state.PLAYERS_OID, x, y, z, r, p, h
                         )
-                        displayed_new_spawn_detected = True
-                except KeyError:
-                    pass
-                    # TODO: Function to handle all non-existent or error prone indicator/state values
-                try:
-                    pedals = ind["pedals"]
-                except KeyError as e:
-                    pedals = ind["pedals1"]
-                stick_ailerons = ind["stick_ailerons"]
-                stick_elevator = ind["stick_elevator"]
-
-                try:
-                    h = ind["compass"]
-                except KeyError as err:
-                    h = hdg(player["dx"], player["dy"])
-
-                if not run_once_per_spawn:
-                    with open('wtunits.json', 'r', encoding='utf-8') as fr:
-                        unit_info = json.loads(fr.read())
-                        fname, lname, sname = unit_info[unit].values()
-                    run_once_per_spawn = True
-
-                sortie_telemetry = (
-                    "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},".format(
-                        time_adjusted_tick, state.PLAYERS_OID, x, y, z, r, p, h
+                        + "Throttle={}".format(s_throttle1)
+                        + "RollControlInput={},".format(stick_ailerons)
+                        + "PitchControlInput={},".format(stick_elevator)
+                        + "YawControlInput={},".format(pedals)
+                        + "IAS={:0.6f},".format(ias)
+                        + "TAS={:0.6f},".format(tas)
+                        + "FuelWeight={},".format(fuel_kg)
+                        + "Mach={},".format(m)
+                        + "AOA={},".format(aoa)
+                        + "FuelVolume={},".format(fuel_vol)
+                        + "LandingGear={},".format(gear)
+                        + "Flaps={},".format(flaps)
                     )
-                    + "Throttle={}".format(s_throttle1)
-                    + "RollControlInput={},".format(stick_ailerons)
-                    + "PitchControlInput={},".format(stick_elevator)
-                    + "YawControlInput={},".format(pedals)
-                    + "IAS={:0.6f},".format(ias)
-                    + "TAS={:0.6f},".format(tas)
-                    + "FuelWeight={},".format(fuel_kg)
-                    + "Mach={},".format(m)
-                    + "AOA={},".format(aoa)
-                    + "FuelVolume={},".format(fuel_vol)
-                    + "LandingGear={},".format(gear)
-                    + "Flaps={},".format(flaps)
-                )
 
-                sortie_subheader = (
-                      "Slot={},".format("0")
-                    + "Importance={},".format("1")
-                    + "Parachute={},".format("0")
-                    + "DragChute={},".format("0")
-                    + "Disabled={},".format("0")
-                    + "Pilot={},".format("0")
-                    + "Name={},".format(unit)
-                    + "ShortName={},".format(sname)
-                    + "LongName={},".format(lname)
-                    + "FullName={},".format(fname)
-                    + "Type={},".format("Air+FixedWing")
-                    + "Color={},".format("None")
-                    + "Callsign={},".format("None")
-                    + "Coalition={},".format("None")
-                )
+                    sortie_subheader = (
+                          "Slot={},".format("0")
+                        + "Importance={},".format("1")
+                        + "Parachute={},".format("0")
+                        + "DragChute={},".format("0")
+                        + "Disabled={},".format("0")
+                        + "Pilot={},".format("0")
+                        + "Name={},".format(unit)
+                        + "ShortName={},".format(unit_lookup[unit]['short'])
+                        + "LongName={},".format(unit_lookup[unit]['long'])
+                        + "FullName={},".format(unit_lookup[unit]['full'])
+                        + "Type={},".format("Air+FixedWing")
+                        + "Color={},".format("None")
+                        + "Callsign={},".format("None")
+                        + "Coalition={},".format("None")
+                    )
 
-                with open("{}.acmi".format(filename), "a", newline="") as g:
-                    if insert_sortie_subheader:
-                        g.write(sortie_telemetry + sortie_subheader + "\n")
-                        insert_sortie_subheader = False
-                    else:
-                        g.write(sortie_telemetry + "\n")
-
+                    with open("{}.acmi".format(filename), "a", newline="") as g:
+                        if insert_sortie_subheader:
+                            g.write(sortie_telemetry + sortie_subheader + "\n")
+                            insert_sortie_subheader = False
+                        else:
+                            g.write(sortie_telemetry + "\n")
+            except TypeError as err:
+                if state.loop_record == True:
+                    pass
         except json.decoder.JSONDecodeError as e:
             loguru.logger.exception(str(e))
         except (TypeError, KeyError, NameError) as e:

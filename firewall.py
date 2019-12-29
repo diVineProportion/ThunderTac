@@ -10,40 +10,28 @@ def check_admin():
     if not isAdmin:
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
 
-
-def add_rule(rule_name, program, direction='outbound', action='allow', enabled=False)                                                                                                                                                                                                                                                                                                             file_path):
+def add_rule(rule_name, file_path):
     """ Add rule to Windows Firewall """
-        subprocess.run(
-        [
-            'netsh', 'advfirewall', 'firewall',
-            'add', 'rule', f'name={rule_name}',
-            f'direction={direction}', f'action={action}', 
-            f'enable={"yes" if enabled else "no"}', f'program={program}',
-        ],
-        check=True,
+    subprocess.call(
+        f"netsh advfirewall firewall add rule name={rule_name} dir=out action=block enable=no program={file_path}",
+        shell=True,
         stdout=DEVNULL,
         stderr=DEVNULL
     )
+    print(f"Rule {rule_name} for {file_path} added")
 
-
-def modify_rule(rule_name, enabled=True):
-    """Enable or Disable a specific rule"""
-    subprocess.run(
-        [
-            'netsh', 'advfirewall', 'firewall',
-            'set', 'rule', f'name={rule_name}',
-            'new', f'enable={"yes" if enabled else "no"}',
-        ],
-        check=True,
+def modify_rule(rule_name, state):
+    """ Enable/Disable specific rule, 0 = Disable / 1 = Enable """
+    state, message = ("yes", "Enabled") if state else ("no", "Disabled")
+    subprocess.call(
+        f"netsh advfirewall firewall set rule name={rule_name} new enable={state}",
+        shell=True,
         stdout=DEVNULL,
         stderr=DEVNULL
     )
+    print(f"Rule {rule_name} {message}")
 
 if __name__ == '__main__':
-    
-    target_name = "ThunderTac"
-    target_path = "K:\\_PROGRAMMING\\.py\\PycharmThunderTac\\testing\\main.exe"
-
     check_admin()
-    add_rule(target_name, target_path)
-    modify_rule(target_name, 1)
+    add_rule("RULE_NAME", "PATH_TO_FILE")
+    modify_rule("RULE_NAME", 1)
