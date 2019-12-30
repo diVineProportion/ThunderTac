@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['main.py'],
-             pathex=['K:\\_PROGRAMMING\\.py\\Githib\\ThunderTac'],
+             pathex=['./'],
              binaries=[],
              datas=[("venv/Lib/site-packages/imagehash/VERSION", "imagehash/")],
              hiddenimports=[],
