@@ -16,7 +16,12 @@ mimg = 'http://localhost:8111/map.img'
 mobj = 'http://localhost:8111/map_obj.json'
 minf = 'http://localhost:8111/map_info.json'
 
+
 path = os.environ['APPDATA'] + r'\Tacview\Data\Terrain\Textures'
+
+if not os.path.exists(path):
+    os.mkdir(path)
+
 
 
 def pythag(a, b):
