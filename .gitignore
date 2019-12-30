@@ -1,7 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
 *.acmi
-!./dist/
-!./build/
-!./venv/
+map.jpg
+./dist/
+./build/
+./venv/
 
 

@@ -66,7 +66,12 @@ displayed_wait_msg_start = False
 displayed_game_state_base = False
 displayed_game_state_batt = False
 displayed_new_spawn_detected = False
+displayed_recorder_stopped = True
+got_map_info = False
 x = y = z = r = p = h = None
+ias = player = wt2lat = wt2long = None
+unit = s_throttle1 = tas = fuel_kg = None
+m = aoa = fuel_vol = gear = flaps = None
 
 with open('wtunits.json', 'r', encoding='utf-8') as f:
     unit_lookup = json.loads(f.read())
@@ -91,21 +96,21 @@ def get_ver_info():  # TODO: test for cases list_possibilites[1:2]
                     pre_path = "{}\\SteamApps\\common\\War Thunder".format(pre_path)
                 post_path = "content\\pkg_main.ver"
                 version_file = os.path.join(pre_path, post_path)
-                with open(version_file, "r") as f:
-                    return f.read()
-        except FileNotFoundError as e:
-            loguru.logger.debug(str(e) + " key: {}".format(key))
+                with open(version_file, "r") as frv:
+                    return frv.read()
+        except FileNotFoundError as err_ver_not_found:
+            loguru.logger.debug(str(err_ver_not_found) + " key: {}".format(key))
             continue
 
 
 def get_loc_info():  # FIXME: update to py3 requests or document why I used urllib.request instead of requests
     """Compare map from browser interface to pre-calculated map hash to provide location info."""
     urllib.request.urlretrieve("http://localhost:8111/map.img", "map.jpg")
-    hash = str(imagehash.average_hash(Image.open("map.jpg")))
-    if hash in maps.keys():
-        return (maps[hash][:-4]).title().replace("_", " ")
+    _hash = str(imagehash.average_hash(Image.open("map.jpg")))
+    if _hash in maps.keys():
+        return (maps[_hash][:-4]).title().replace("_", " ")
     else:
-        return 'ERROR: "{}" NOT FOUND"'.format(hash)
+        return 'ERROR: "{}" NOT FOUND"'.format(_hash)
 
 
 def get_utc_offset():
@@ -137,7 +142,7 @@ def get_web_reqs(req_type):
         request = requests.get("http://localhost:8111/" + req_type, timeout=0.1)
         if request.status_code == requests.codes.ok and request is not None:
             return request.json()
-    except (requests.exceptions.RequestException, json.decoder.JSONDecodeError) as err:
+    except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
         pass
 
 
@@ -197,7 +202,7 @@ def insert_header(reference_time):
         hdrhost=constants.PLAYERS_CID,
         hdtitle=(game_state()[14:]).title(),
         catgory="NOT YET IMPLEMENTED",
-        briefin="NOT YET IMPLEMENTED",
+        briefin=get_loc_info(),
         debrief="NOT YET IMPLEMENTED",
         hdstate=get_loc_info(),
         comment=arrow.now().format()[:-6],
@@ -211,8 +216,8 @@ def insert_header(reference_time):
         reflati="0"
     )
 
-    with open("{}.acmi".format(filename), "a", newline="") as g:
-        g.write(header_mandatory + header_text_prop + header_numb_prop)
+    with open("{}.acmi".format(filename), "a", newline="") as fah:
+        fah.write(header_mandatory + header_text_prop + header_numb_prop)
 
 
 def set_user_object():
@@ -237,7 +242,7 @@ def get_map_info():
     """Gather map information; very important for proper scaling"""
     # TODO: tank/plane switch causes map scale to change
     # TODO: create function with db lookup to place wt maps over real world 3d terrain
-
+    mapsinfo.main()
     while True:
         try:
             inf = get_web_reqs(constants.BMAP_INFOS)
@@ -248,9 +253,27 @@ def get_map_info():
             lat = map_total_x / 111302
             long = map_total_y / 111320
             break
-        except (TypeError, NameError) as err:
-            loguru.logger.error(str(err))
+        except (TypeError, NameError) as err_not_sure:
+            loguru.logger.error(str(err_not_sure + "this should be safe to remove"))
     return lat, long
+
+
+# def reset():
+#     global displayed_game_state_base
+#     global displayed_recorder_stopped
+#     global displayed_wait_msg_start
+#     global got_map_info
+#     curr_game_state = game_state()
+#     if curr_game_state == constants.TITLE_BASE:
+#         if not displayed_game_state_base:
+#             loguru.logger.info("STATE: In Hangar")
+#             displayed_game_state_base = True
+#         if state.loop_record is True and not displayed_recorder_stopped:
+#             loguru.logger.info("RECORD: Recording Stopped")
+#             displayed_recorder_stopped = True
+#         displayed_wait_msg_start = False
+#         state.loop_record = False
+#         got_map_info = False
 
 
 warnings.filterwarnings("ignore")
@@ -266,11 +289,19 @@ while True:
         if not displayed_game_state_base:
             loguru.logger.info("STATE: In Hangar")
             displayed_game_state_base = True
+        if not displayed_recorder_stopped:
+            loguru.logger.info("RECORD: Recording Stopped")
+            displayed_recorder_stopped = True
+        displayed_wait_msg_start = False
         state.loop_record = False
+        state.primary_header_placed = False
+        got_map_info = False
     elif curr_game_state == constants.TITLE_TEST:
         time_rec_start = time.time()
         loguru.logger.debug("TIME: Session Start=" + str(time_rec_start))
-        wt2lat, wt2long = get_map_info()
+        if not got_map_info:
+            wt2lat, wt2long = get_map_info()
+            got_map_info = True
         loguru.logger.info("STATE: Test Flight")
         insert_sortie_subheader = True
         state.loop_record = True
@@ -278,8 +309,9 @@ while True:
         if not displayed_game_state_batt:
             loguru.logger.info("STATE: In Battle")
             displayed_game_state_batt = True
-
-        wt2lat, wt2long = get_map_info()
+        if not got_map_info:
+            wt2lat, wt2long = get_map_info()
+            got_map_info = True
         if mode_debug:
             loguru.logger.debug(str("debug: recording automatically started"))
             time_rec_start = time.time()
@@ -288,8 +320,13 @@ while True:
             state.loop_record = True
         elif synced_chat_start:
             if not displayed_wait_msg_start:
-                loguru.logger.debug("WAITING: Wait for message start enabled")
+                loguru.logger.info("WAITING: Wait for message start..")
                 displayed_wait_msg_start = True
+            if game_state() == constants.TITLE_BASE:
+                state.loop_record = False
+                displayed_game_state_base = False
+                # displayed_recorder_stopped = False
+                # reset()
             msg = get_web_reqs(constants.BMAP_CHATS)
             if msg:
                 last_msg = msg[-1]["msg"]
@@ -297,22 +334,20 @@ while True:
                 last_sender = msg[-1]["sender"]
                 if last_msg == ttac_rec:
                     if last_sender == ttac_mas:
-                        loguru.logger.debug("RECORD: Manual recording initiated")
+                        loguru.logger.info("RECORD: Manual recording initiated")
                         loguru.logger.info("RECORD: String trigger recognized; All client recorders are running")
                         time_rec_start = time.time()
                         loguru.logger.debug("TIME: Session Start=" + str(time_rec_start))
-                        wt2lat, wt2long = get_map_info()
-                        loguru.logger.info("STATE: In Battle")
+                        # wt2lat, wt2long = get_map_info()
                         insert_sortie_subheader = True
                         state.loop_record = True
-                        # make_active(game_state())
-                    elif last_sender is not ttac_mas:
-                        loguru.logger.critical("RECORD: You do not have permission to start the recorders")
-            else:
-                pass
 
     while state.loop_record:
-        # TODO: might include some way to produce multiple acmi files
+        if game_state() == constants.TITLE_BASE:
+            state.loop_record = False
+            state.loop_record = False
+            displayed_game_state_base = False
+            # displayed_recorder_stopped = False
         map_objects = None
         try:
             map_objects = get_web_reqs(constants.BMAP_OBJTS)
@@ -320,6 +355,8 @@ while True:
             if game_state() == "War Thunder":
                 loguru.logger.info("game mode: in hangar")
                 state.loop_record = False
+                displayed_game_state_base = False
+                displayed_recorder_stopped = False
             else:
                 pass
 
@@ -338,6 +375,12 @@ while True:
         try:
             player = [el for el in map_objects if el["icon"] == "Player"][0]
         except (IndexError, TypeError) as err:
+            try:
+                player = [el for el in map_objects if el["icon"] == "Player"][0]
+            except (IndexError, TypeError):
+                pass
+            else:
+                continue
             player_fetch_fail = True
             # exception catches loss of player object on map_obj.json
 
@@ -355,17 +398,20 @@ while True:
                             parachute_down(z) + parachute_align_gravity
                         )
                         g.write(
-                            "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},Name=Parachute,Type=Air+Parachutist,Coalition=Allies,Color=Blue,AGL={}\n".format(
+                            "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},Name=Parachute,"
+                            "Type=Air+Parachutist,Coalition=Allies,Color=Blue,AGL={}\n".format(
                                 time_adjusted_tick, state.PARACHUTE, x, y, z, r, p, h, z
                             )
                         )
                         g.write(
-                            "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},Name=Parachute,Type=Air+Parachutist,Coalition=Allies,Color=Blue,AGL={}\n".format(
+                            "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},Name=Parachute,"
+                            "Type=Air+Parachutist,Coalition=Allies,Color=Blue,AGL={}\n".format(
                                 parachute_align_gravity, state.PARACHUTE, x, y, z - 15, 0, 0, h, z - 15,
                             )
                         )
                         g.write(
-                            "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},Name=Parachute,Type=Air+Parachutist,Coalition=Allies,Color=Blue,AGL={}\n".format(
+                            "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},Name=Parachute,"
+                            "Type=Air+Parachutist,Coalition=Allies,Color=Blue,AGL={}\n".format(
                                 parachute_touchdown_time, state.PARACHUTE, x, y, 0, 0, 0, h, 0,
                             )
                         )
@@ -376,12 +422,16 @@ while True:
                                 state.PARACHUTE,
                             )
                         )
-                    loguru.logger.debug(
-                        "OBJECT: Player lost object: {}".format(state.PLAYERS_OID)
-                    )
+                    loguru.logger.debug("OBJECT: Player lost object: {}".format(state.PLAYERS_OID))
                     state.PLAYERS_OID = None
                     insert_sortie_subheader = True
                     displayed_new_spawn_detected = False
+                    curr_game_state = game_state()
+                    if curr_game_state == constants.TITLE_BASE:
+                        loguru.logger.info("STATE: In Hangar")
+                        displayed_game_state_base = False
+                        state.loop_record = False
+                        got_map_info = False
                     continue
 
             elif not state.PLAYERS_OID and player_fetch_fail:
@@ -398,9 +448,7 @@ while True:
             # time_toast = time.perf_counter()
             # time_notification = time_toast - time_bread
             state.PLAYERS_OID = set_user_object()
-            loguru.logger.debug(
-                "OBJECT: Player assigned object: {}".format(state.PLAYERS_OID)
-            )
+            loguru.logger.debug("OBJECT: Player assigned object: {}".format(state.PLAYERS_OID))
             # insert_sortie_subheader = True
 
         try:
@@ -447,7 +495,9 @@ while True:
                         unit = ind["type"]
                         if not displayed_new_spawn_detected:
                             if unit_lookup[unit]:
-                                loguru.logger.info("PLAYER: New spwan detected; UNIT: {}".format(unit_lookup[unit]['full']))
+                                loguru.logger.info("PLAYER: New spwan detected; UNIT: {}".format(
+                                    unit_lookup[unit]['full'])
+                                )
                             else:
                                 loguru.logger.info("PLAYER: New spwan detected; UNIT: {}".format(unit))
                             displayed_new_spawn_detected = True
@@ -509,12 +559,15 @@ while True:
 
                     with open("{}.acmi".format(filename), "a", newline="") as g:
                         if insert_sortie_subheader:
-                            g.write(sortie_telemetry + sortie_subheader + "\n")
+                            try:
+                                g.write(sortie_telemetry + sortie_subheader + "\n")
+                            except UnicodeEncodeError as err:
+                                print(err)
                             insert_sortie_subheader = False
                         else:
                             g.write(sortie_telemetry + "\n")
             except TypeError as err:
-                if state.loop_record == True:
+                if state.loop_record:
                     pass
         except json.decoder.JSONDecodeError as e:
             loguru.logger.exception(str(e))
