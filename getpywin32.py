@@ -1,3 +1,4 @@
+import os
 import sys
 import wget
 
@@ -14,3 +15,5 @@ url = "https://github.com/mhammond/pywin32/releases/download/b227/pywin32-227.{a
     arch=arch, maj=major, min=minor)
 
 filename = wget.download(url)
+
+os.rename(filename, "pywin32-227.exe")
