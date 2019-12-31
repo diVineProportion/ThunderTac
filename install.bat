@@ -1,32 +1,20 @@
-@ECHO OFF
-ECHO.
-ECHO.
-ECHO Tasks
-ECHO -----
-ECHO.
-ECHO 1. create venv
-ECHO 2. activate venv
-ECHO 3. update pip
-ECHO 4. install (venv) python dependencies
-ECHO 5. pip install (development) pyinstaller
-ECHO 6. wget pywin32 extensions
-ECHO 7. easy_install pywin32 extensions
-ECHO.
-ECHO.
-pause
+PAUSE
 CLS
-@ECHO ON
+@ECHO OFF
 python -m venv venv
-call venv\Scripts\activate.bat
+ECHO VIRTUAL ENVIRONMENT 'VENV' CREATED
+CALL venv\Scripts\activate.bat
+ECHO VIRTUAL ENVIRONMENT 'VENV' ACTIVATED
 python -m pip install --upgrade pip
+ECHO PIP PACKAGE INSTALLATION MANAGER UPGRADED
 pip install -r requirements.txt
-REM PyPI version has problems (v3.5) use development version from github (~v4.0)
+ECHO FETCHING AND INSTALLING REQUIRED PYTHON PACKAGES FOR OPERATION
 pip install https://github.com/pyinstaller/pyinstaller/archive/develop.tar.gz
-pip install wget
-REM auto fetch and install
+ECHO FETCHING AND INSTALLING REQUIRED PYTHON PACKAGES FOR BUILDING/FREEZING
 python getpywin32.py
-REM use easy install to install extensions in venv
-easy_install pywin32-227.win-amd64-py3.7.exe
-REM delete pywin32 after use
-del pywin32-227.win-amd64-py3.7.exe
-pause
+ECHO PYWIN32-227 DOWNLOADED
+easy_install pywin32-227.exe
+ECHO PYWIN32-227 INSTALLED
+DEL pywin32-227.exe
+ECHO PYWIN32-227 CLEANED UP
+PAUSE
