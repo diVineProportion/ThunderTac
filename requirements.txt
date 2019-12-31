@@ -8,10 +8,8 @@ pywinauto == 0.6.8
 remembrall == 0.0.3
 requests == 2.22.0
 xmltodict == 0.12.0
+wget == 3.2
 
-
-### DO NOT USE PyPI Version
-# pyinstaller
-
-### MUST DOWNLOAD WIN PYTHON EXTENSIONS
-# win32gui
+## ALSO REQUIRED BUT NOT THROUGH PyPI
+# pyinstaller - beta download from github using pip
+# win32gui - custom download script for pywin32 then easy_install to install to venv
