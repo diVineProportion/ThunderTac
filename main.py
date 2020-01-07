@@ -1,3 +1,10 @@
+# import cgitb
+
+# cgitb.enable(format='text')
+import sys
+import trace
+tracer = trace.Trace(trace=1, ignoredirs=(sys.prefix, sys.exec_prefix))
+
 import configparser
 import json
 import math
@@ -7,8 +14,11 @@ import sys
 import time
 import urllib.request
 import warnings
-from winreg import OpenKey, QueryValueEx, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
 
+from winreg import OpenKey, QueryValueEx, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
+import zipfile
+from ftplib import FTP
+from tinydb import TinyDB
 import arrow
 import imagehash
 import loguru
@@ -24,34 +34,34 @@ import state
 import mapsinfo
 from maphash import maps
 
+try:
+    import simplejson as json
+except ImportError:
+    import json
 time_notification = 0
-# time_notification = 2
 
+db = TinyDB('db.json')
 config = configparser.ConfigParser()
 
-# if not os.path.exists('config.ini'):
-#     config['DEFAULT'] = {'tac_master': input("Insert the Tac Master Alias (Do not include squadron)")
-#                          'tac_client': input("Insert War Thunder Alias (Do not include squadron)"),
-#                          'rec_string': 'ttac.rec'}
-#     with open('config.ini', 'w') as f:
-#         config.write(f)
 
 config.read('config.ini')
 
 
-# thundertac uses the wt gamechat as a command relay system
-# every iteration of the main loop (not the child record loop)
-# checks the gamechat messages; define tac master here
+ttac_mas = config['general']['ttac_mas']
+ttac_str = config['general']['ttac_str']
+ftp_addr = config['ftpcred']['ftp_addr']
+ftp_user = config['ftpcred']['ftp_user']
+ftp_pass = config['ftpcred']['ftp_pass']
 
-ttac_mas = config['general']['tac_master']
-# multi client command to tell thundertac to start recording
-# test flights should be automatic
-ttac_rec = config['general']['rec_string']
-filename = "thundertac.acmi"
+
+
+filename = ""
 gilrnsmr = None
-# test flight has 2 modes; test flight mode and mission mode
-# one of the following two will tell force recording when in the
-# mission mode (which has same window title as ranked matches)
+""" 
+    test flight has 2 modes; test flight mode and mission mode
+    one of the following two will tell force recording when in the
+    mission mode (which has same window title as ranked matches)
+"""
 mode_test = False
 mode_debug = False
 
@@ -108,7 +118,7 @@ def get_loc_info():  # FIXME: update to py3 requests or document why I used urll
     urllib.request.urlretrieve("http://localhost:8111/map.img", "map.jpg")
     _hash = str(imagehash.average_hash(Image.open("map.jpg")))
     if _hash in maps.keys():
-        return (maps[_hash][:-4]).title().replace("_", " ")
+        return maps[_hash][:-4]
     else:
         return 'ERROR: "{}" NOT FOUND"'.format(_hash)
 
@@ -133,17 +143,20 @@ def get_utc_offset():
 def get_filename():
     # TODO: Move to userinfo module
     sdate, stime = (str(arrow.utcnow())[:-13]).replace(":", ".").split("T")
-    return "[{},{}]_[{}@{}]".format(sdate, stime, constants.PLAYERS_UID, constants.PLAYERS_CID)
+    ltime = str(arrow.now().format('HH:mm:ss')).replace(":", ".")
+    return "DATE({})_UTC({})_LOC({})_{}@{}".format(sdate, stime, ltime, constants.PLAYERS_UID, constants.PLAYERS_CID)
 
 
 def get_web_reqs(req_type):
     """request data from web interface"""
-    try:
-        request = requests.get("http://localhost:8111/" + req_type, timeout=0.1)
-        if request.status_code == requests.codes.ok and request is not None:
-            return request.json()
-    except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
-        pass
+    wait_till_recv = False
+    while not wait_till_recv:
+        try:
+            response = requests.get("http://localhost:8111/" + req_type, timeout=0.1)
+            if response.status_code == 200:
+                return response.json()
+        except requests.exceptions.ReadTimeout as e:
+            pass
 
 
 def game_state():
@@ -202,9 +215,9 @@ def insert_header(reference_time):
         hdrhost=constants.PLAYERS_CID,
         hdtitle=(game_state()[14:]).title(),
         catgory="NOT YET IMPLEMENTED",
-        briefin=get_loc_info(),
+        briefin=get_loc_info().replace("_", " "),
         debrief="NOT YET IMPLEMENTED",
-        hdstate=get_loc_info(),
+        hdstate=get_loc_info().replace("_", " "),
         comment=arrow.now().format()[:-6],
     )
 
@@ -242,7 +255,7 @@ def get_map_info():
     """Gather map information; very important for proper scaling"""
     # TODO: tank/plane switch causes map scale to change
     # TODO: create function with db lookup to place wt maps over real world 3d terrain
-    mapsinfo.main()
+    mapsinfo.mainfunc()
     while True:
         try:
             inf = get_web_reqs(constants.BMAP_INFOS)
@@ -258,36 +271,81 @@ def get_map_info():
     return lat, long
 
 
-# def reset():
-#     global displayed_game_state_base
-#     global displayed_recorder_stopped
-#     global displayed_wait_msg_start
-#     global got_map_info
-#     curr_game_state = game_state()
-#     if curr_game_state == constants.TITLE_BASE:
-#         if not displayed_game_state_base:
-#             loguru.logger.info("STATE: In Hangar")
-#             displayed_game_state_base = True
-#         if state.loop_record is True and not displayed_recorder_stopped:
-#             loguru.logger.info("RECORD: Recording Stopped")
-#             displayed_recorder_stopped = True
-#         displayed_wait_msg_start = False
-#         state.loop_record = False
-#         got_map_info = False
+def acmi_zip_out():
+    pass
+    try:
+        import zlib
+        compression = zipfile.ZIP_DEFLATED
+    except (ImportError, AttributeError):
+        compression = zipfile.ZIP_STORED
+
+    modes = {
+        zipfile.ZIP_DEFLATED: 'deflated',
+        zipfile.ZIP_STORED: 'stored',
+    }
+
+    print('creating archive')
+    newname = get_loc_info() + '.jpg'
+    if os.path.exists(newname):
+        os.remove(newname)
+    os.rename('map.jpg', newname)
+    with zipfile.ZipFile(filename + '.zip', mode='w') as zf:
+        mode_name = modes[compression]
+        print('adding "{}" to archive using mode "{}"'.format(filename + '.acmi', mode_name))
+        zf.write(filename + '.acmi', compress_type=compression)
+        print('adding "{}" to archive using mode "{}"'.format(newname, mode_name))
+        zf.write(newname, compress_type=compression)
+
+
+def acmi_ftp_out():
+    pass
+    session = FTP(ftp_addr , ftp_user, ftp_pass)
+    file = open(filename + '.zip', 'rb')  # file to send
+    session.storbinary('STOR {}'.format(filename + '.zip'), file)  # send the file
+    file.close()  # close file and FTP
+    session.quit()
+
+
+def super_tracer(code_string, variable_state):
+    logger.log("TRACER", "CODE: {}\n\t{}".format(code_string, variable_state))
+
+''' def reset():
+      global displayed_game_state_base
+      global displayed_recorder_stopped
+      global displayed_wait_msg_start
+      global got_map_info
+      curr_game_state = game_state()
+      if curr_game_state == constants.TITLE_BASE:
+          if not displayed_game_state_base:
+              loguru.logger.info("STATE: In Hangar")
+              displayed_game_state_base = True
+          if state.loop_record is True and not displayed_recorder_stopped:
+              loguru.logger.info("RECORD: Recording Stopped")
+              displayed_recorder_stopped = True
+          displayed_wait_msg_start = False
+          state.loop_record = False
+          got_map_info = False'''
 
 
 warnings.filterwarnings("ignore")
-# ignore pywin32 admin message
 ntp = ntplib.NTPClient()
-# initialize the ntp client
-loguru.logger.debug(str("module init completed"))
-# mark when function loading completed
 
-while True:
+loguru.logger.debug(str("PRGRM: module init completed"))
+loguru.logger.debug(str("PRGRM: main loop running"))
+
+from loguru import logger
+logger.logger_tracer = logger.level("TRACER", no=38, color="<blue>", icon="🔍")
+# x = logger.add(sys.stderr, format="{message}", level="INFO")
+logger.log("TRACER", "MSG: STRING")
+
+do_loop = True
+while do_loop:
+    # super_tracer("while do_loop:", do_loop)
     curr_game_state = game_state()
     if curr_game_state == constants.TITLE_BASE:
         if not displayed_game_state_base:
             loguru.logger.info("STATE: In Hangar")
+            loguru.logger.info("PRGRM: Please join a match or test flight")
             displayed_game_state_base = True
         if not displayed_recorder_stopped:
             loguru.logger.info("RECORD: Recording Stopped")
@@ -298,7 +356,7 @@ while True:
         got_map_info = False
     elif curr_game_state == constants.TITLE_TEST:
         time_rec_start = time.time()
-        loguru.logger.debug("TIME: Session Start=" + str(time_rec_start))
+        loguru.logger.debug("TIMER: Session Start=" + str(time_rec_start))
         if not got_map_info:
             wt2lat, wt2long = get_map_info()
             got_map_info = True
@@ -313,14 +371,14 @@ while True:
             wt2lat, wt2long = get_map_info()
             got_map_info = True
         if mode_debug:
-            loguru.logger.debug(str("debug: recording automatically started"))
+            loguru.logger.debug(str("PRGRM: recording automatically started"))
             time_rec_start = time.time()
-            make_active(game_state())
-            loguru.logger.debug("WINDOW: Forced aces.exe to active window")
+            # make_active(game_state())
+            # loguru.logger.debug("WINDOW: Forced aces.exe to active window")
             state.loop_record = True
         elif synced_chat_start:
             if not displayed_wait_msg_start:
-                loguru.logger.info("WAITING: Wait for message start..")
+                loguru.logger.info("PRGRM: Wait for message start..")
                 displayed_wait_msg_start = True
             if game_state() == constants.TITLE_BASE:
                 state.loop_record = False
@@ -332,10 +390,9 @@ while True:
                 last_msg = msg[-1]["msg"]
                 last_mode = msg[-1]["mode"]
                 last_sender = msg[-1]["sender"]
-                if last_msg == ttac_rec:
+                if last_msg == ttac_str:
                     if last_sender == ttac_mas:
-                        loguru.logger.info("RECORD: Manual recording initiated")
-                        loguru.logger.info("RECORD: String trigger recognized; All client recorders are running")
+                        loguru.logger.info("RECORD: String trigger recognized")
                         time_rec_start = time.time()
                         loguru.logger.debug("TIME: Session Start=" + str(time_rec_start))
                         # wt2lat, wt2long = get_map_info()
@@ -348,19 +405,27 @@ while True:
             state.loop_record = False
             displayed_game_state_base = False
             # displayed_recorder_stopped = False
+            displayed_game_state_base = False
+            state.loop_record = False
+            got_map_info = False
+            acmi_zip_out()
+            acmi_ftp_out()
+            if os.path.exists('map.jpg'):
+                os.remove('map.jpg')
+            db.insert({'time': arrow.utcnow().format(), 'map': get_loc_info() + '.jpg'})
         map_objects = None
+
         try:
             map_objects = get_web_reqs(constants.BMAP_OBJTS)
         except json.decoder.JSONDecodeError as err:
-            if game_state() == "War Thunder":
-                loguru.logger.info("game mode: in hangar")
-                state.loop_record = False
-                displayed_game_state_base = False
-                displayed_recorder_stopped = False
-            else:
-                pass
+            # if game_state() == constants.TITLE_BASE:
+            #     state.loop_record = False
+            #     displayed_game_state_base = False
+            #     displayed_recorder_stopped = False
+            # else:
+            pass
 
-            loguru.logger.exception(str(err))
+            # loguru.logger.exception(str(err))
 
         if map_objects and not state.primary_header_placed:
             filename = get_filename()
@@ -432,6 +497,12 @@ while True:
                         displayed_game_state_base = False
                         state.loop_record = False
                         got_map_info = False
+                        # TODO: INCO INTO RESET()
+                        acmi_zip_out()
+                        acmi_ftp_out()
+                        if os.path.exists('map.jpg'):
+                            os.remove('map.jpg')
+                        db.insert({'time': arrow.utcnow(), 'map': get_loc_info()})
                     continue
 
             elif not state.PLAYERS_OID and player_fetch_fail:
@@ -490,8 +561,6 @@ while True:
                             p = ind["aviahorizon_pitch"] * -1
                         except KeyError as err_plane_not_compatible:
                             print("This plane is currently not supported")
-                            input("Press the any key to exit..")
-                            sys.exit()
                         unit = ind["type"]
                         if not displayed_new_spawn_detected:
                             if unit_lookup[unit]:

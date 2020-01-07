@@ -9,6 +9,8 @@ from PIL import Image, ImageDraw
 from requests import get
 from requests.exceptions import ReadTimeout, ConnectTimeout
 
+
+
 # from main import debug_mode
 debug_mode = False
 informed = False
@@ -16,10 +18,10 @@ mimg = 'http://localhost:8111/map.img'
 mobj = 'http://localhost:8111/map_obj.json'
 minf = 'http://localhost:8111/map_info.json'
 
-path = os.environ['APPDATA'] + r'\Tacview\Data\Terrain\Textures'
+path = os.path.join(os.environ['APPDATA'], "Tacview\\Data\\Terrain\\Textures")
 
 if not os.path.exists(path):
-    os.mkdir(path)
+    os.makedirs(path)
 
 
 def pythag(a, b):
@@ -42,7 +44,7 @@ def latlon2meters(lat1, lon1, lat2, lon2):
     return d * 1000
 
 
-def main():
+def mainfunc():
     while True:
         try:
             # with open('map.jpg', 'w') as f:
@@ -52,7 +54,6 @@ def main():
             urllib.request.urlretrieve('http://localhost:8111/map.img', 'map.jpg')
             inf_req = get(minf, timeout=0.02).json()
             map_obj = get(mobj, timeout=0.02).json()
-            loguru.logger.debug(str("map_info.json retrieved"))
             break
 
         except (json.decoder.JSONDecodeError) as err:
@@ -99,7 +100,7 @@ def main():
     for y in range(int(step_offset), int(image.width), int(step_size)):
         line = ((x_start, y), (x_end, y))
         image_draw.line(line, fill=256)
-
+    loguru.logger.debug(str("map_info.json retrieved"))
     loguru.logger.debug(str("drawing grid lines"))
 
     af_list = [el for el in map_obj if el['type'] == 'airfield']
@@ -204,19 +205,20 @@ def main():
 
     # TODO: check for existing .xml and append rather than overwrite
 
-    with open(path + '\CustomTextureList.xml', 'w') as fw:
+    with open(path + '\\CustomTextureList.xml', 'w') as fw:
         fw.write(unparse(tex_insert, pretty=True))
 
     loguru.logger.debug(str("setting size for tacview scaling"))
 
     if debug_mode:
         image.save('wt.jpg')
-
+    from main import get_loc_info
+    finalpath = path + '\\' + get_loc_info() + '.jpg'
     if os.path.exists(path):
-        image.save(path + '\wt.jpg')
+        image.save(finalpath)
 
-    loguru.logger.debug(str("image saved to: " + path + '\wt.jpg'))
+    loguru.logger.debug(str("image saved to: " +finalpath))
 
 
 # if __name__ == '__main__':
-#     main()
+#     mainfunc()

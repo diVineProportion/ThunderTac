@@ -7,9 +7,11 @@ pywin32 == 227
 pywinauto == 0.6.8
 remembrall == 0.0.3
 requests == 2.22.0
+tinydb == 3.15.2
 xmltodict == 0.12.0
 wget == 3.2
 
-## ALSO REQUIRED BUT NOT THROUGH PyPI
+# ALSO REQUIRED BUT NOT THROUGH PyPI
+# ----------------------------------
 # pyinstaller - beta download from github using pip
-# win32gui - custom download script for pywin32 then easy_install to install to venv
+# win32gui    - custom download script for pywin32 then easy_install to install to venv
