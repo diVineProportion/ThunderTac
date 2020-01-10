@@ -46,9 +46,10 @@ config = configparser.ConfigParser()
 
 config.read('config.ini')
 
-
+ttac_usr = config['general']['ttac_usr']
 ttac_mas = config['general']['ttac_mas']
 ttac_str = config['general']['ttac_str']
+ftp_send = config['ftpcred']['ftp_send']
 ftp_addr = config['ftpcred']['ftp_addr']
 ftp_user = config['ftpcred']['ftp_user']
 ftp_pass = config['ftpcred']['ftp_pass']
@@ -298,12 +299,12 @@ def acmi_zip_out():
 
 
 def acmi_ftp_out():
-    pass
-    session = FTP(ftp_addr , ftp_user, ftp_pass)
-    file = open(filename + '.zip', 'rb')  # file to send
-    session.storbinary('STOR {}'.format(filename + '.zip'), file)  # send the file
-    file.close()  # close file and FTP
-    session.quit()
+    if ftp_send:
+        session = FTP(ftp_addr , ftp_user, ftp_pass)
+        file = open(filename + '.zip', 'rb')  # file to send
+        session.storbinary('STOR {}'.format(filename + '.zip'), file)  # send the file
+        file.close()  # close file and FTP
+        session.quit()
 
 
 def super_tracer(code_string, variable_state):
@@ -615,7 +616,7 @@ while do_loop:
                         + "Parachute={},".format("0")
                         + "DragChute={},".format("0")
                         + "Disabled={},".format("0")
-                        + "Pilot={},".format("0")
+                        + "Pilot={},".format(ttac_usr)
                         + "Name={},".format(unit)
                         + "ShortName={},".format(unit_lookup[unit]['short'])
                         + "LongName={},".format(unit_lookup[unit]['long'])
