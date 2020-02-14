@@ -1,7 +1,9 @@
 # see note in state.py
 
 # TODO: migrate anything realted to the following imports to userinfo module
-from os import environ
+import os
+import glob
+from os import getenv
 from getpass import getuser
 
 # THUNDERTAC VERSION
@@ -41,6 +43,26 @@ PLAYERS_OID = "PLAYER OBJECT DESTROYED"
 
 # THUNDERTAC USER ID
 PLAYERS_UID = getuser()
-PLAYERS_CID = environ['COMPUTERNAME']
+PLAYERS_CID = getenv('COMPUTERNAME')
 
 
+APPDATA_DIR = "{}\\Documents\\My Games\\WarThunder\\Saves\\".format(getenv('USERPROFILE'))
+
+
+recent = max(glob.glob(os.path.join(APPDATA_DIR, '*/')), key=os.path.getmtime)
+print(recent.split('\\')[-2])
+
+file = "production\\machine.blk"
+filepath = "{}{}".format(recent, file)
+filepath = filepath.replace("\\", "\\\\" )
+
+with open(filepath, 'r') as f:
+    data = f.read()
+
+data = data.split('\n')
+
+for line_no, line_val in enumerate(data):
+    if line_no == 3:
+        machine_id = line_val
+
+print(machine_id.split('"')[1])

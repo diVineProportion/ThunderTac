@@ -93,7 +93,7 @@ with open('wtunits.json', 'r', encoding='utf-8') as f:
 def get_ver_info():  # TODO: test for cases list_possibilites[1:2]
     """get steam install directory from registry; use found path to read version file """
     list_possibilites = [
-        [HKEY_CURRENT_USER, "SOFTWARE\\Gaijin\\WarThunder\\InstallPath"],
+        [HKEY_CURRENT_USER,  "SOFTWARE\\Gaijin\\WarThunder\\InstallPath"],
         [HKEY_LOCAL_MACHINE, "SOFTWARE\\Wow6432Node\\Valve\\Steam\\InstallPath"],
         [HKEY_LOCAL_MACHINE, "SOFTWARE\\Valve\\Steam\\InstallPath"],
     ]

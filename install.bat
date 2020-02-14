@@ -17,19 +17,23 @@ FOR /f "delims=" %%I IN ('python.exe --version') DO SET "output=%%I"
 :PythonDoesNotExistOrWrongVerison
 CLS
 ECHO. 
-ECHO This .bat script will spawn an instance of Powershell with the Execution Policy bypassed.
-ECHO For more information visit https:/go.microsoft.com/fwlink/?LinkID=135170
+ECHO This .bat script will spawn an instance of Powershell with Execution Policy temporarily bypassed.
+ECHO This will allow it run a Powershell script file that originated from a computer other that the one
+ECHO you are currently working on. 
 ECHO.
-TIMEOUT /T 20
+ECHO The .ps1 file will download and do a silent/background install of Python 3.7.4.
 ECHO.
-ECHO It will then call a .ps1 script to download and silently install Python 3.7.4 to
+ECHO Installation Directory:
 IF %_os_bitness% == 64 (
   ECHO %LOCALAPPDATA%\Programs\Python\Python37
 ) ELSE (
   ECHO %LOCALAPPDATA%\Programs\Python\Python37-32
 )
 ECHO.
-TIMEOUT /T 10
+ECHO.
+ECHO For more information on Execution Policy visit https:/go.microsoft.com/fwlink/?LinkID=135170
+ECHO.
+PAUSE
 ECHO.
 Powershell -ExecutionPolicy Bypass -File "ignore.ps1"
 ECHO.
