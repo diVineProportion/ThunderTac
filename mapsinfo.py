@@ -1,3 +1,5 @@
+import configparser
+
 import json
 import math
 import os
@@ -18,6 +20,7 @@ mimg = 'http://localhost:8111/map.img'
 mobj = 'http://localhost:8111/map_obj.json'
 minf = 'http://localhost:8111/map_info.json'
 
+tempdb = configparser.ConfigParser()
 path = os.path.join(os.environ['APPDATA'], "Tacview\\Data\\Terrain\\Textures")
 
 if not os.path.exists(path):
@@ -93,15 +96,17 @@ def mainfunc():
     x_end = pixels_x
     y_end = pixels_y
 
-    for x in range(int(step_offset), int(image.width), int(step_size)):
-        line = ((x, y_start), (x, y_end))
-        image_draw.line(line, fill=256)
+    if int(step_size) != 0:
+        for x in range(int(step_offset), int(image.width), int(step_size)):
+            line = ((x, y_start), (x, y_end))
+            image_draw.line(line, fill=256)
 
-    for y in range(int(step_offset), int(image.width), int(step_size)):
-        line = ((x_start, y), (x_end, y))
-        image_draw.line(line, fill=256)
-    loguru.logger.debug(str("map_info.json retrieved"))
-    loguru.logger.debug(str("drawing grid lines"))
+        for y in range(int(step_offset), int(image.width), int(step_size)):
+            line = ((x_start, y), (x_end, y))
+            image_draw.line(line, fill=256)
+
+    loguru.logger.debug(str("[M] map_info.json retrieved"))
+    loguru.logger.debug(str("[M] drawing grid lines"))
 
     af_list = [el for el in map_obj if el['type'] == 'airfield']
     for i in range(len(af_list)):
@@ -117,10 +122,10 @@ def mainfunc():
             line = ((afsx, afsy), (afex, afey))
             image_draw.line(line, fill=acol, width=10)
 
-    loguru.logger.debug(str("drawing airfields"))
+    loguru.logger.debug(str("[M] drawing airfields"))
 
-    if os.path.exists('map.jpg'):
-        os.remove('map.jpg')
+    # if os.path.exists('map.jpg'):
+    #     os.remove('map.jpg')
 
     # TODO: provide a standard .xml to display the custom textures
     # lat long (tacview) to mach (war thunder)
@@ -208,16 +213,18 @@ def mainfunc():
     with open(path + '\\CustomTextureList.xml', 'w') as fw:
         fw.write(unparse(tex_insert, pretty=True))
 
-    loguru.logger.debug(str("setting size for tacview scaling"))
+    loguru.logger.debug(str("[M] setting size for tacview scaling"))
 
     if debug_mode:
         image.save('wt.jpg')
-    from main import get_loc_info
-    finalpath = path + '\\' + get_loc_info() + '.jpg'
+    # from main import get_loc_info
+    tempdb.read('.temp')
+    map_info = tempdb['MAP_INFO']['hash_lookup_result']
+    finalpath = path + '\\' + map_info + '.jpg' #  get_loc_info() + '.jpg'
     if os.path.exists(path):
         image.save(finalpath)
 
-    loguru.logger.debug(str("image saved to: " +finalpath))
+    loguru.logger.debug(str("[M] image saved to: " +finalpath))
 
 
 # if __name__ == '__main__':

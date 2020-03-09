@@ -4,6 +4,7 @@
 import os
 import glob
 from os import getenv
+from os import environ
 from getpass import getuser
 
 # THUNDERTAC VERSION
@@ -13,6 +14,9 @@ TT_VERSION = '0.0.1'
 CONVTO_MPS = 0.277778
 
 # BROWSER MAP LOCATIONS
+BMAP_ADDR = "localhost"
+BMAP_PORT = 8111
+BMAP_BASE = "http://{}:{}/".format(BMAP_ADDR, BMAP_PORT)
 BMAP_STATE = "state"
 BMAP_INDIC = "indicators"
 BMAP_OBJTS = "map_obj.json"
@@ -44,25 +48,3 @@ PLAYERS_OID = "PLAYER OBJECT DESTROYED"
 # THUNDERTAC USER ID
 PLAYERS_UID = getuser()
 PLAYERS_CID = getenv('COMPUTERNAME')
-
-
-APPDATA_DIR = "{}\\Documents\\My Games\\WarThunder\\Saves\\".format(getenv('USERPROFILE'))
-
-
-recent = max(glob.glob(os.path.join(APPDATA_DIR, '*/')), key=os.path.getmtime)
-print(recent.split('\\')[-2])
-
-file = "production\\machine.blk"
-filepath = "{}{}".format(recent, file)
-filepath = filepath.replace("\\", "\\\\" )
-
-with open(filepath, 'r') as f:
-    data = f.read()
-
-data = data.split('\n')
-
-for line_no, line_val in enumerate(data):
-    if line_no == 3:
-        machine_id = line_val
-
-print(machine_id.split('"')[1])

@@ -1,0 +1,1 @@
+C:\Users\diVIne\AppData\Local\Programs\Python\Python37-32\python.exe -m trace --ignore-dir=C:\Users\diVIne\AppData\Local\Programs\Python\Python37-32 --trace ./main.py
