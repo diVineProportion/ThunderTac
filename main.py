@@ -118,8 +118,6 @@ def get_loc_info():  # FIXME: update to py3 requests or document why I used urll
         tempdb['MAP_INFO']['hash_lookup_result'] = 'ERROR'
     with open('.temp', 'w') as cfw:
         tempdb.write(cfw)
-
-
 def get_utc_offset():
     """get difference between players local machine and NTP time server; use to sync players"""
     ntpreq = None
@@ -135,15 +133,11 @@ def get_utc_offset():
     # record start time is the client synced UTC starting time with the offset included.
     record_start_time = str(arrow.get(arrow.utcnow().float_timestamp + time_offset))[:-6]
     return record_start_time
-
-
-def get_filename():
+def set_filename():
     # TODO: Move to userinfo module
     sdate, stime = (str(arrow.utcnow())[:-13]).replace(":", ".").split("T")
     ltime = str(arrow.now().format('HH:mm:ss')).replace(":", ".")
     return "DATE({})_UTC({})_LOC({})_{}@{}".format(sdate, stime, ltime, constants.PLAYERS_UID, constants.PLAYERS_CID)
-
-
 def get_web_reqs(req_type):
     """request data from web interface"""
     wait_till_recv = False
@@ -154,8 +148,6 @@ def get_web_reqs(req_type):
                 return response.json()
         except requests.exceptions.ReadTimeout as e:
             pass
-
-
 def window_title():
     """Use win32api window handle titles to detect war thunder state"""
     # TODO: consider using xored clog file for more robust detection
@@ -163,15 +155,11 @@ def window_title():
         whnd = win32gui.FindWindowEx(None, None, None, window_titles)
         if not (whnd == 0):
             return window_titles
-
-
 def hdg(dx, dy):
     """Fallback in case compass is missing from indicators pannel"""
     dx *= wt2long * -1
     dy *= wt2lat * -1
     return int(180 - (180 / math.pi) * math.atan2(dx, dy))
-
-
 def parachute_down(init_altitude):
     """Control parachute decent rate"""
     # avg ROF for parachte = 20 km/h
@@ -179,8 +167,6 @@ def parachute_down(init_altitude):
     # 5.5 too slow
     falltime = init_altitude * 2.5
     return falltime
-
-
 def insert_header(reference_time):
     """Insertion of mandatory .acmi header data + valuable information for current battle"""
 
@@ -229,13 +215,9 @@ def insert_header(reference_time):
 
     with open("{}.acmi".format(filename), "a", newline="") as fah:
         fah.write(header_mandatory + header_text_prop + header_numb_prop)
-
-
 def set_user_object():
     """Object ID assigner"""
     return hex(random.randint(0, int(0xFFFFFFFFFFFFFFFF)))[2:]
-
-
 def make_active(current_wt_window_title):
     """Force war thunder to active window state"""
     try:
@@ -247,8 +229,6 @@ def make_active(current_wt_window_title):
         print("Please start war thunder\n")
         input("press any key to exit")
         exit()
-
-
 def get_map_info():
     """Gather map information; very important for proper scaling"""
     # TODO: tank/plane switch causes map scale to change
@@ -267,8 +247,6 @@ def get_map_info():
         # except (TypeError, NameError) as err_not_sure:
         #     loguru.logger.error(str(err_not_sure + "this should be safe to remove"))
     return lat, long
-
-
 def acmi_zip_out():
     pass
     # try:
@@ -294,8 +272,6 @@ def acmi_zip_out():
     #     zf.write(filename + '.acmi', compress_type=compression)
     #     print('adding "{}" to archive using mode "{}"'.format(newname, mode_name))
     #     zf.write(newname, compress_type=compression)
-
-
 def acmi_ftp_out():
     pass
     # if ftp_send:
@@ -304,22 +280,16 @@ def acmi_ftp_out():
     #     session.storbinary('STOR {}'.format(filename + '.zip'), file)  # send the file
     #     file.close()  # close file and FTP
     #     session.quit()
-
-
 def gamechat(id_msg=0):
     url_gamechat = constants.BMAP_BASE + "gamechat?lastId={}"
     url_gamechat = url_gamechat.format(id_msg)
     req_gamechat = requests.get(url_gamechat, timeout=0.02)
     return req_gamechat.json()
-
-
 def hudmsg(id_evt=0, id_dmg=0):
     url_hudmsg = constants.BMAP_BASE + "hudmsg?lastEvt={}&lastDmg={}"
     url_hudmsg = url_hudmsg.format(id_evt, id_dmg)
     req_hudmsg = requests.get(url_hudmsg, timeout=0.02)
     return req_hudmsg.json()
-
-
 ''' def reset():
       global displayed_game_state_base
       global displayed_recorder_stopped
@@ -337,24 +307,21 @@ def hudmsg(id_evt=0, id_dmg=0):
           state.loop_record = False
           got_map_info = False'''
 
-map_data = None
 last_id_msg = 0
 last_id_evt = 0
 last_id_dmg = 0
+map_data = None
 chat_trigger_started = False
-warnings.filterwarnings("ignore")
 ntp = ntplib.NTPClient()
-
 tick0 = time.perf_counter()
+warn = warnings.filterwarnings("ignore")
+
 loguru.logger.debug(str("[I] Initialization Complete. Took {}s".format(tick0 - start)))
 loguru.logger.debug(str("[I] Entering Main Loop"))
-
-# x = logger.add(sys.stderr, format="{message}", level="INFO")
 
 
 do_loop = True
 while do_loop:
-    # super_tracer("while do_loop:", do_loop)
     curr_game_state = window_title()
     if curr_game_state == constants.TITLE_BASE:
         if not displayed_game_state_base:
@@ -459,7 +426,7 @@ while do_loop:
             # loguru.logger.exception(str(err))
 
         if map_objects and not state.primary_header_placed:
-            filename = get_filename()
+            filename = set_filename()
             insert_header(get_utc_offset())
             state.primary_header_placed = True
 
@@ -490,9 +457,7 @@ while do_loop:
                     if z > 15 and ias > 100:
                         state.PARACHUTE = set_user_object()
                         parachute_align_gravity = time_adjusted_tick + 3
-                        parachute_touchdown_time = (
-                                parachute_down(z) + parachute_align_gravity
-                        )
+                        parachute_touchdown_time = (parachute_down(z) + parachute_align_gravity)
                         g.write(
                             "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},Name=Parachute,"
                             "Type=Air+Parachutist,Coalition=Allies,Color=Blue,AGL={}\n".format(
@@ -620,11 +585,20 @@ while do_loop:
                             fname, lname, sname = unit_info[unit].values()
                         run_once_per_spawn = True
 
+                    # with open(r'c:\users\divine\opentrack.csv', 'r') as fr:
+                    #     headtrack = fr.readlines()[-1].split(',')
+                    #     # for idx, item in enumerate(headtrack):
+                    #     #     print(idx, item)
+                    #     PilotHeadYaw = int(float(headtrack[22]))
+                    #     PilotHeadPitch = int(float(headtrack[23]))
+                    #     PilotHeadRoll = int(float(headtrack[24]))
+                    #     print(PilotHeadYaw, PilotHeadPitch, PilotHeadRoll)
+
                     sortie_telemetry = (
                             "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},".format(
                                 time_adjusted_tick, state.PLAYERS_OID, x, y, z, r, p, h
                             )
-                            + "Throttle={}".format(s_throttle1)
+                            + "Throttle={},".format(s_throttle1)
                             + "RollControlInput={},".format(stick_ailerons)
                             + "PitchControlInput={},".format(stick_elevator)
                             + "YawControlInput={},".format(pedals)
@@ -636,6 +610,9 @@ while do_loop:
                             + "FuelVolume={},".format(fuel_vol)
                             + "LandingGear={},".format(gear)
                             + "Flaps={},".format(flaps)
+                            # + "PilotHeadRoll={},".format(PilotHeadRoll)
+                            # + "PilotHeadPitch={},".format(PilotHeadPitch)
+                            # + "PilotHeadYaw={},".format(PilotHeadYaw)
                     )
 
                     sortie_subheader = (
@@ -673,36 +650,36 @@ while do_loop:
             loguru.logger.exception(str(e))
 
 
-        try:
-            req_gamechat = gamechat(last_id_msg)
-            list_msglog = req_gamechat
-            if list_msglog:
-                for items in list_msglog:
-                    with open("{}.acmi".format(filename), "a", encoding="utf8", newline="") as g:
-                        g.write("// MSG:" + str(items) + "\n")
-                list_last_msglog = list_msglog
-                last_id_msg = list_last_msglog[-1]['id']
-        except requests.exceptions.ReadTimeout as e:
-            print(e)
+        # try:
+        #     req_gamechat = gamechat(last_id_msg)
+        #     list_msglog = req_gamechat
+        #     if list_msglog:
+        #         for items in list_msglog:
+        #             with open("{}.acmi".format(filename), "a", encoding="utf8", newline="") as g:
+        #                 g.write("// MSG:" + str(items) + "\n")
+        #         list_last_msglog = list_msglog
+        #         last_id_msg = list_last_msglog[-1]['id']
+        # except requests.exceptions.ReadTimeout as e:
+        #     print(e)
 
-        try:
-            req_hudmsg = hudmsg(last_id_evt, last_id_dmg)
-            list_evtlog = req_hudmsg['events']
-            list_dmglog = req_hudmsg['damage']
-            if list_evtlog:
-                for items in list_evtlog:
-                    with open("{}.acmi".format(filename), "a", encoding="utf8", newline="") as g:
-                        g.write("// EVT:" + str(items) + "\n")
-                list_last_evtlog = list_evtlog
-                last_id_evt = list_last_evtlog[-1]['id']
-            if list_dmglog:
-                for items in list_dmglog:
-                    with open("{}.acmi".format(filename), "a", encoding="utf8", newline="") as g:
-                        g.write("// DMG:" + str(items) + "\n")
-                list_last_dmglog = list_dmglog
-                last_id_dmg = list_last_dmglog[-1]['id']
-        except requests.exceptions.ReadTimeout as e:
-            print(e)
+        # try:
+        #     req_hudmsg = hudmsg(last_id_evt, last_id_dmg)
+        #     list_evtlog = req_hudmsg['events']
+        #     list_dmglog = req_hudmsg['damage']
+        #     if list_evtlog:
+        #         for items in list_evtlog:
+        #             with open("{}.acmi".format(filename), "a", encoding="utf8", newline="") as g:
+        #                 g.write("// EVT:" + str(items) + "\n")
+        #         list_last_evtlog = list_evtlog
+        #         last_id_evt = list_last_evtlog[-1]['id']
+        #     if list_dmglog:
+        #         for items in list_dmglog:
+        #             with open("{}.acmi".format(filename), "a", encoding="utf8", newline="") as g:
+        #                 g.write("// DMG:" + str(items) + "\n")
+        #         list_last_dmglog = list_dmglog
+        #         last_id_dmg = list_last_dmglog[-1]['id']
+        # except requests.exceptions.ReadTimeout as e:
+        #     print(e)
 
 
 
