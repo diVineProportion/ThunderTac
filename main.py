@@ -337,7 +337,7 @@ while do_loop:
 
         if not Display.state_hangar:
             loguru.logger.debug("[S] In Hangar")
-            loguru.logger.info("[N] Join Battle / Test Flight")
+            loguru.logger.info("[N] Join Battle / Test")
             Display.state_hangar = True
 
         if not Display.finished_rec:
