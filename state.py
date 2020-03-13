@@ -13,3 +13,4 @@ RESET_EVENT = True
 
 PLAYERS_OID = None
 PARACHUTE = False
+got_map_info = False

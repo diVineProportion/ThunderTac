@@ -1,17 +1,12 @@
 import configparser
-import json
 import math
 import os
 import random
-import sys
 import time
-import tempfile
 import urllib.request
 import warnings
 
 from winreg import OpenKey, QueryValueEx, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
-import zipfile
-from ftplib import FTP
 from tinydb import TinyDB
 import arrow
 import imagehash
@@ -23,10 +18,10 @@ from PIL import Image
 from pywinauto import ElementNotFoundError, Application
 
 import constants
-import userinfo
 import state
 import mapsinfo
 from maphash import maps
+from state import state.got_map_info
 
 try:
     import simplejson as json
@@ -72,7 +67,6 @@ displayed_game_state_base = False
 displayed_game_state_batt = False
 displayed_new_spawn_detected = False
 displayed_recorder_stopped = True
-got_map_info = False
 x = y = z = r = p = h = None
 ias = player = wt2lat = wt2long = None
 unit = s_throttle1 = tas = fuel_kg = None
@@ -294,7 +288,7 @@ def hudmsg(id_evt=0, id_dmg=0):
       global displayed_game_state_base
       global displayed_recorder_stopped
       global displayed_wait_msg_start
-      global got_map_info
+      global state.got_mapinfo
       curr_game_state = game_state()
       if curr_game_state == constants.TITLE_BASE:
           if not displayed_game_state_base:
@@ -305,7 +299,12 @@ def hudmsg(id_evt=0, id_dmg=0):
               displayed_recorder_stopped = True
           displayed_wait_msg_start = False
           state.loop_record = False
-          got_map_info = False'''
+          state.got_mapinfo = False'''
+
+class Display:
+    state_hangar = False
+    finished_rec = False
+    msg_wait_rec = False
 
 last_id_msg = 0
 last_id_evt = 0
@@ -321,80 +320,87 @@ loguru.logger.debug(str("[I] Entering Main Loop"))
 
 
 do_loop = True
+
+
 while do_loop:
+
     curr_game_state = window_title()
     if curr_game_state == constants.TITLE_BASE:
-        if not displayed_game_state_base:
-            loguru.logger.info("[S] In Hangar")
+
+        if not Display.state_hangar:
+            loguru.logger.debug("[S] In Hangar")
             loguru.logger.info("[N] Please join a match or test flight")
-            displayed_game_state_base = True
-        if not displayed_recorder_stopped:
+            Display.state_hangar = True
+
+        if not Display.finished_rec:
             loguru.logger.info("[R] Recording Stopped")
-            displayed_recorder_stopped = True
-        displayed_wait_msg_start = False
+            Display.finished_rec = True
+
+        Display.msg_wait_rec = False
         state.loop_record = False
-        state.primary_header_placed = False
-        got_map_info = False
+        state.head_placed = False
+        state.got_mapinfo = False
     elif curr_game_state == constants.TITLE_TEST:
         time_rec_start = time.time()
         loguru.logger.debug("[R] Session Start=" + str(time_rec_start))
-        if not got_map_info:
+        if not state.got_mapinfo:
             wt2lat, wt2long = get_map_info()
             get_loc_info()
             mapsinfo.mainfunc()
-            got_map_info = True
+            state.got_mapinfo = True
         loguru.logger.info("[S] Test Flight")
         tick1 = time.perf_counter()
         print(tick1 - start)
         insert_sortie_subheader = True
         state.loop_record = True
-    elif curr_game_state == (constants.TITLE_BATT or constants.TITLE_DX32):
-        if not displayed_game_state_batt:
-            loguru.logger.info("[S] In Battle")
-            displayed_game_state_batt = True
+    for action_game_state in [constants.TITLE_BATT, constants.TITLE_DX32]:
+        if curr_game_state == action_game_state:
+            if not displayed_game_state_batt:
+                loguru.logger.info("[S] In Battle")
+                displayed_game_state_batt = True
 
-            wt2lat, wt2long = get_map_info()
-            if wt2lat is not None and wt2long is not None:
-                got_map_info = True
+                wt2lat, wt2long = get_map_info()
+                if wt2lat is not None and wt2long is not None:
+                    state.got_mapinfo = True
 
 
-        if mode_debug:
-            loguru.logger.debug(str("[R] recording automatically started"))
-            time_rec_start = time.time()
-            # make_active(game_state())
-            # loguru.logger.debug("WINDOW: Forced aces.exe to active window")
-            state.loop_record = True
-        elif rec_start_mode_gamechat:
-            if not displayed_wait_msg_start:
-                loguru.logger.info("[T] Wait for message start..")
-                displayed_wait_msg_start = True
-            if window_title() == constants.TITLE_BASE:
-                state.loop_record = False
-                displayed_game_state_base = False
-                # displayed_recorder_stopped = False
-                # reset()
-            # msg = get_web_reqs(constants.BMAP_CHATS)
-            # if msg:
+            if mode_debug:
+                loguru.logger.debug(str("[R] recording automatically started"))
+                time_rec_start = time.time()
+                # make_active(game_state())
+                # loguru.logger.debug("WINDOW: Forced aces.exe to active window")
+                state.loop_record = True
+            elif rec_start_mode_gamechat:
+                if not displayed_wait_msg_start:
+                    loguru.logger.info("[T] Wait for message start..")
+                    displayed_wait_msg_start = True
+                if window_title() == constants.TITLE_BASE:
+                    state.loop_record = False
+                    displayed_game_state_base = False
+                    # displayed_recorder_stopped = False
+                    # reset()
+                # msg = get_web_reqs(constants.BMAP_CHATS)
+                # if msg:
 
-            if got_map_info is True and chat_trigger_started is False:
-                try:
-                    req_gamechat = gamechat(last_id_msg)
-                except requests.exceptions.ReadTimeout as e:
-                    print(e)
-                list_msglog = req_gamechat
-                if list_msglog:
-                    last_msg = list_msglog[-1]["msg"]
-                    last_mode = list_msglog[-1]["mode"]
-                    last_sender = list_msglog[-1]["sender"]
-                    if last_msg == ttac_str:
-                        if last_sender == ttac_mas:
-                            chat_trigger_started = True
-                            loguru.logger.info("[T] String trigger recognized")
-                            time_rec_start = time.time()
-                            loguru.logger.debug("[R] Session Start=" + str(time_rec_start))
-                            # wt2lat, wt2long = get_map_info()
-                            insert_sortie_subheader = True
-                            state.loop_record = True
+                if state.got_mapinfo is True and chat_trigger_started is False:
+                    try:
+                        req_gamechat = gamechat(last_id_msg)
+                    except requests.exceptions.ReadTimeout as e:
+                        print(e)
+                    list_msglog = req_gamechat
+                    if list_msglog:
+                        last_msg = list_msglog[-1]["msg"]
+                        last_mode = list_msglog[-1]["mode"]
+                        last_sender = list_msglog[-1]["sender"]
+                        if last_msg == ttac_str:
+                            if last_sender == ttac_mas:
+                                chat_trigger_started = True
+                                loguru.logger.info("[T] String trigger recognized")
+                                time_rec_start = time.time()
+                                loguru.logger.debug("[R] Session Start=" + str(time_rec_start))
+                                # wt2lat, wt2long = get_map_info()
+                                insert_sortie_subheader = True
+                                state.loop_record = True
 
     while state.loop_record:
 
@@ -405,7 +411,7 @@ while do_loop:
             # displayed_recorder_stopped = False
             displayed_game_state_base = False
             state.loop_record = False
-            got_map_info = False
+            state.got_mapinfo = False
             acmi_zip_out()
             acmi_ftp_out()
             if os.path.exists('map.jpg'):
@@ -425,10 +431,10 @@ while do_loop:
 
             # loguru.logger.exception(str(err))
 
-        if map_objects and not state.primary_header_placed:
+        if map_objects and not state.head_placed:
             filename = set_filename()
             insert_header(get_utc_offset())
-            state.primary_header_placed = True
+            state.head_placed = True
 
         time_this_tick = time.time()
         time_adjusted_tick = arrow.get(
@@ -492,7 +498,7 @@ while do_loop:
                         loguru.logger.info("[S] In Hangar")
                         displayed_game_state_base = False
                         state.loop_record = False
-                        got_map_info = False
+                        state.got_mapinfo = False
                         # TODO: INCO INTO RESET()
                         acmi_zip_out()
                         acmi_ftp_out()
@@ -698,11 +704,11 @@ while do_altl:
             last_title = window_title()
             if last_title in constants.TITLE_LIST_REC:
                 curr_activity = last_title
-                while not got_map_info:
+                while not state.got_mapinfo:
                     try:
                         wt2lat, wt2long = get_map_info()
                         loguru.logger.debug(str("[MAP]: INFORMATION RETRIEVED"))
-                        got_map_info = True
+                        state.got_mapinfo = True
                     except requests.RequestException:
                         pass
 
