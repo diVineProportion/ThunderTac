@@ -21,7 +21,7 @@ import constants
 import state
 import mapsinfo
 from maphash import maps
-from state import state.got_map_info
+
 
 try:
     import simplejson as json
@@ -77,6 +77,14 @@ with open('wtunits.json', 'r', encoding='utf-8') as f:
 
 
 # loguru.logger.add("file_{time}.log", level="ERROR", rotation="100 MB")
+
+
+def gaijin_state():
+    with open(os.environ['USERPROFILE'] + '\\Documents\\My Games\\WarThunder\\Saves\\last_state.blk', 'r') as fr:
+        prev_state, last_state = fr.readlines()
+    prev_state = prev_state.split('"')[1]
+    last_state = last_state.split('"')[1]
+    return last_state
 
 
 def get_ver_info():  # TODO: test for cases list_possibilites[1:2]
@@ -288,7 +296,7 @@ def hudmsg(id_evt=0, id_dmg=0):
       global displayed_game_state_base
       global displayed_recorder_stopped
       global displayed_wait_msg_start
-      global state.got_mapinfo
+      global state.info_region
       curr_game_state = game_state()
       if curr_game_state == constants.TITLE_BASE:
           if not displayed_game_state_base:
@@ -299,11 +307,11 @@ def hudmsg(id_evt=0, id_dmg=0):
               displayed_recorder_stopped = True
           displayed_wait_msg_start = False
           state.loop_record = False
-          state.got_mapinfo = False'''
+          state.info_region = False'''
 
 class Display:
     state_hangar = False
-    finished_rec = False
+    finished_rec = True
     msg_wait_rec = False
 
 last_id_msg = 0
@@ -329,7 +337,7 @@ while do_loop:
 
         if not Display.state_hangar:
             loguru.logger.debug("[S] In Hangar")
-            loguru.logger.info("[N] Please join a match or test flight")
+            loguru.logger.info("[N] Join Battle / Test Flight")
             Display.state_hangar = True
 
         if not Display.finished_rec:
@@ -339,16 +347,16 @@ while do_loop:
         Display.msg_wait_rec = False
         state.loop_record = False
         state.head_placed = False
-        state.got_mapinfo = False
+        state.info_region = False
     elif curr_game_state == constants.TITLE_TEST:
         time_rec_start = time.time()
         loguru.logger.debug("[R] Session Start=" + str(time_rec_start))
-        if not state.got_mapinfo:
+        if not state.info_region:
             wt2lat, wt2long = get_map_info()
             get_loc_info()
             mapsinfo.mainfunc()
-            state.got_mapinfo = True
-        loguru.logger.info("[S] Test Flight")
+            state.info_region = True
+        loguru.logger.debug("[S] Test Flight")
         tick1 = time.perf_counter()
         print(tick1 - start)
         insert_sortie_subheader = True
@@ -361,7 +369,7 @@ while do_loop:
 
                 wt2lat, wt2long = get_map_info()
                 if wt2lat is not None and wt2long is not None:
-                    state.got_mapinfo = True
+                    state.info_region = True
 
 
             if mode_debug:
@@ -382,7 +390,7 @@ while do_loop:
                 # msg = get_web_reqs(constants.BMAP_CHATS)
                 # if msg:
 
-                if state.got_mapinfo is True and chat_trigger_started is False:
+                if state.info_region is True and chat_trigger_started is False:
                     try:
                         req_gamechat = gamechat(last_id_msg)
                     except requests.exceptions.ReadTimeout as e:
@@ -411,7 +419,7 @@ while do_loop:
             # displayed_recorder_stopped = False
             displayed_game_state_base = False
             state.loop_record = False
-            state.got_mapinfo = False
+            state.info_region = False
             acmi_zip_out()
             acmi_ftp_out()
             if os.path.exists('map.jpg'):
@@ -498,7 +506,7 @@ while do_loop:
                         loguru.logger.info("[S] In Hangar")
                         displayed_game_state_base = False
                         state.loop_record = False
-                        state.got_mapinfo = False
+                        state.info_region = False
                         # TODO: INCO INTO RESET()
                         acmi_zip_out()
                         acmi_ftp_out()
@@ -531,6 +539,7 @@ while do_loop:
             print(err)
 
         try:
+            temp_test = gaijin_state()
             sta = get_web_reqs(constants.BMAP_STATE)
             if sta is not None and sta["valid"]:
                 z = sta["H, m"]
@@ -555,7 +564,7 @@ while do_loop:
 
             ind = get_web_reqs(constants.BMAP_INDIC)
             try:
-                if ind is not None and ind["valid"]:
+                if ind is not None and ind["valid"] and temp_test == "Playing":
                     try:
                         ind = get_web_reqs(constants.BMAP_INDIC)
                         try:
@@ -704,11 +713,11 @@ while do_altl:
             last_title = window_title()
             if last_title in constants.TITLE_LIST_REC:
                 curr_activity = last_title
-                while not state.got_mapinfo:
+                while not state.info_region:
                     try:
                         wt2lat, wt2long = get_map_info()
                         loguru.logger.debug(str("[MAP]: INFORMATION RETRIEVED"))
-                        state.got_mapinfo = True
+                        state.info_region = True
                     except requests.RequestException:
                         pass
 
