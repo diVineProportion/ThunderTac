@@ -3,7 +3,7 @@ import json
 
 
 def main():
-    filename = "I:\\WarThunderRepo\\1.93.2.17\\lang.vromfs.bin_u\\lang\\units.csv"
+    filename = "D:\\WarThunderRepo\\1.95.0.138\\lang.vromfs.bin_u\\lang\\units.csv"
 
     units = {}
 
