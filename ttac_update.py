@@ -22,7 +22,6 @@ def print_status_info(info):
     # print(downloaded, total, status, percent_complete, time)
 
 
-print(__name__)
 invoker = __name__
 if invoker == "__main__":
     # TODO: Manual Update Check & Update

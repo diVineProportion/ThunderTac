@@ -14,8 +14,8 @@ import loguru
 import ntplib
 import requests
 import simplejson as json
-from pyupdater.client import Client
 
+import constants
 import ttac_update
 import map_info
 import userinfo
@@ -278,7 +278,7 @@ def get_unit():
     except FileNotFoundError:
         wt_units_host = 'https://raw.githubusercontent.com/diVineProportion/ThunderTac/master/wtunits.json'
         wt_units_data = requests.get(wt_units_host).json()
-        wt_units_version = wt_units_data['.ttacver']
+        wt_units_version = wt_units_data['version']
         loguru.logger.info(f"[A] UNITS LIBRARY: War Thunder v'{wt_units_version}' Loaded")
         wt_game_version = userinfo.get_ver_info()
         if wt_game_version != wt_units_version:
@@ -290,14 +290,15 @@ def get_unit():
 
 
 def inspector(message=""):
-    import inspect
-    _ = inspect.stack()
-    path_full = _[1][1]
-    from_line = _[1][2]
-    from_modu = _[1][3]
-    name_file = path_full.split("ThunderTac")[-1]
-    tracker = loguru.logger.level("TRACK", no=38, color="<red>")
-    loguru.logger.log("TRACK", f"{name_file}:{from_modu}:{from_line} | {message}")
+    pass
+    # import inspect
+    # _ = inspect.stack()
+    # path_full = _[1][1]
+    # from_line = _[1][2]
+    # from_modu = _[1][3]
+    # name_file = path_full.split("ThunderTac")[-1]
+    # tracker = loguru.logger.level("TRACK", no=38, color="<red>")
+    # loguru.logger.log("TRACK", f"{name_file}:{from_modu}:{from_line} | {message}")
 
 
 def nxt_sort():
