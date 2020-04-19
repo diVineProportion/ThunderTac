@@ -1,5 +1,5 @@
-# ThunderTac  
-![](resources\\thundertac_white_400.png)  
+# ThunderTac  (THIS README IS AN INCOMPLETE WORK IN PROGRESS)
+![](https://raw.githubusercontent.com/diVineProportion/ThunderTac/master/resources/thundertac_black_400.png)  
   
 
 ## config.ini
