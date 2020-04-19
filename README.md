@@ -2,28 +2,64 @@
 ![](https://raw.githubusercontent.com/diVineProportion/ThunderTac/master/resources/thundertac_white_400.png)  
   
 
-## config.ini
-**[network]**  
-source_ip = [ `127.0.0.1` | `localhost` | `192.168.xxx.xxx`  ]
-source_pt = [ `8111`  ]
-**[general]**  
-ttac_usr = [ `diVineProportion`]   
-ttac_mas = [ `diVineProportion` ]   
-ttac_rec = ttac.rec  
-**[loguru]**  
-level = DEBUG  
-**[debug]**  
-debug_on = False  
-**[ftpcred]**  
-ftp_send = True  
-ftp_addr = ftp.thundertac.altervista.org  
-ftp_user = thundertac  
-ftp_pass = c63sghaFEP58  
-ftp_sess = WIP  
-**[pyupdater]**  
-channel = 1  
-**[configinit]**  
-first_run = False
+## config.ini explained
+```
+[network]
+```
+source_ip = `[ 127.0.0.1 | localhost | 192.168.xxx.xxx ]`
+
+source_pt = `[ 8111 ]`
+
+```
+[general]
+```
+
+**ttac_usr** = [ player's name ]` must match in-game name
+
+ttac_mas = `[ hosters name ]`
+
+ttac_rec = `[ any string ] `
+
+```
+[loguru]
+```
+
+level = `[ CRITICAL | WARNING | DEBUG | INFO ]`
+
+```
+[debug]
+```
+
+debug_on = `[ True | False ]`
+
+```
+[ftpcred]
+```
+
+ftp_send = `[ True | False ]`
+
+ftp_addr = `[ any ftp address ]`
+
+ftp_user = `[ ftp user credential ]`
+
+ftp_pass = `[ ftp pass credential ]`
+
+ftp_sess = `[ ftp folder name ]`
+
+```
+[pyupdater]
+```
+
+channel = `[ stable | beta | alpha ]`
+
+strict = `[ True | False ]`
+
+```
+[configinit]
+```
+
+first_run = `[ True | False ]`
+
 
 ## Platform Information  
   
