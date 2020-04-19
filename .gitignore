@@ -1,4 +1,6 @@
+/.idea/
 /.pyupdater/
+/__pycache__/
 /ACMI/
 /pyu-data/
 /venv/
