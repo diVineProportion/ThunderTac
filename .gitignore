@@ -241,5 +241,6 @@ fabric.properties
 
 
 ### USER ADDITIONS ###
+*.acmi
 temp.ini
 ACMI/
