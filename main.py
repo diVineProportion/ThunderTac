@@ -1,7 +1,10 @@
+
+
 import configparser
 import math
 import os
 import random
+import subprocess
 import sys
 import time
 import zipfile
@@ -15,14 +18,18 @@ import ntplib
 import requests
 import simplejson as json
 
-import constants
+import _update_
+import arguments
 import map_info
 import userinfo
-from client_config import ClientConfig
 
-from  ttac_new import check_for_update
+from config import cfc_general
+from config import cfg_loguru
+from config import cfg_debug
+from config import cfg_ftpcred
+from config import cfg_configinit
+from config import WebInterfaceEndpoints as WebAPI
 
-check_for_update()
 
 windows = linux = darwin = False
 platform = userinfo.system_info()
@@ -33,35 +40,11 @@ elif platform == "Linux":
 elif platform == "Darwin":
     darwin = True
 
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-if config['configinit']['first_run'] == 'True':
-    ttac_usr = input("INPUT WT ALIAS (NO SQUADRON): ")
-    ttac_mas = input("INPUT TT MASTER (SAME OR ASK YOU ThunderTac HOST): ")
-    config['general']['ttac_usr'] = ttac_usr
-    config['general']['ttac_mas'] = ttac_mas
-    config['configinit']['first_run'] = 'False'
-    with open('config.ini', 'w') as f:
-        config.write(f)
-
-
-ttac_log = config['loguru']['level']
-ttac_dbg = config['debug']['debug_on']
-ttac_usr = config['general']['ttac_usr']
-ttac_mas = config['general']['ttac_mas']
-ttac_rec = config['general']['ttac_rec']
-ftp_send = config['ftpcred']['ftp_send']
-ftp_addr = config['ftpcred']['ftp_addr']
-ftp_user = config['ftpcred']['ftp_user']
-ftp_pass = config['ftpcred']['ftp_pass']
-ftp_sess = config['ftpcred']['ftp_sess']
-source_ip = config['network']['source_ip']
-source_pt = config['network']['source_pt']
-pyu_channel = config['pyupdater']['channel']
-
-ftp_send = bool(ftp_send)
-ttac_dbg = bool(ttac_dbg)
+ttac_usr, ttac_mas, ttac_rec = cfc_general()
+ttac_log = cfg_loguru()
+ttac_dbg = cfg_debug()
+ftp_send, ftp_addr, ftp_user, ftp_pass, ftp_sess = cfg_ftpcred()
+first_run = cfg_configinit()
 
 loguru.logger.remove()
 loguru.logger.add(sys.stderr, level=ttac_log)
@@ -256,14 +239,14 @@ def set_user_object():
 
 
 def gamechat(id_msg=0):
-    url_gamechat = f"{constants.WebAPI.CHAT}?lastId={id_msg}"
+    url_gamechat = f"{WebAPI.CHAT}?lastId={id_msg}"
     url_gamechat = url_gamechat.format(id_msg)
     req_gamechat = requests.get(url_gamechat, timeout=0.02)
     return req_gamechat.json()
 
 
 def hudmsg(id_evt=0, id_dmg=0):
-    url_hudmsg = f"{constants.WebAPI.HMSG}?lastEvt={id_evt}&lastDmg={id_dmg}"
+    url_hudmsg = f"{WebAPI.HMSG}?lastEvt={id_evt}&lastDmg={id_dmg}"
     url_hudmsg = url_hudmsg.format(id_evt, id_dmg)
     req_hudmsg = requests.get(url_hudmsg, timeout=0.02)
     return req_hudmsg.json()
@@ -520,7 +503,7 @@ while True:
             break
 
         try:
-            map_objects = get_web_reqs(constants.WebAPI.OBJT)
+            map_objects = get_web_reqs(WebAPI.OBJT)
         except json.decoder.JSONDecodeError as e:
             loguru.logger.exception(str(e))
 
@@ -624,8 +607,8 @@ while True:
 
         try:
             temp_test = gaijin_state_method()
-            ind = get_web_reqs(constants.WebAPI.INDI)
-            sta = get_web_reqs(constants.WebAPI.STAT)
+            ind = get_web_reqs(WebAPI.INDI)
+            sta = get_web_reqs(WebAPI.STAT)
             if sta["valid"] and ind["valid"]:
                 z = sta["H, m"]
                 ias = sta["IAS, km/h"] * CONVTO_MPS
@@ -652,7 +635,7 @@ while True:
                 temp_test = gaijin_state_method()
                 if ind["valid"] and temp_test == "playing":
                     try:
-                        ind = get_web_reqs(constants.WebAPI.INDI)
+                        ind = get_web_reqs(WebAPI.INDI)
                         try:
                             if temp_test == "playing":
                                 r = ind["aviahorizon_roll"] * -1

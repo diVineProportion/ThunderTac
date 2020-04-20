@@ -17,10 +17,21 @@ cur_patch = ''
 curr_channel = ''
 
 
+def print_status_info(info):
+    total = info.get(u'total')
+    downloaded = info.get(u'downloaded')
+    status = info.get(u'status')
+    percent_complete = info.get(u'percent_complete')
+    time = info.get(u'time')
+    print(downloaded, total, status, percent_complete, time)
+    print("\rProgress: [{0:50s}] {1:.1f}%".format('#' * int(percent_complete * 50), percent_complete), end="", flush=True)
+
+
 def app_info():
-    version_string = Version.APP_VERSION
-    channel = None
-    major, minor, patch, channel, release = version_string.split('.')
+    path = os.environ['LOCALAPPDATA'] + "\\warthunderapps\\thundertac\\update\\config.ini"
+    version_int = Version(path).APP_VERSION
+    major, minor, patch, channel, release = version_int.split('.')
+
     case = int(channel)
     if case == 0:
         channel = "alpha"
@@ -32,29 +43,16 @@ def app_info():
         channel = ""
 
     name = ClientConfig.APP_NAME
-    version = f"{major}.{minor}.{patch}{channel}"
-    return name, version, version_string
+    version_string = f"{major}.{minor}.{patch}{channel}"
+    return name, version_string, version_int
 
 
-def progress_bar(percent):
-    print("\rProgress: [{0:50s}] {1:.1f}%".format('#' * int(percent * 50), percent*100), end="", flush=True)
+def _update_(for_client):
+    app_name, app_version_string, app_version_int = app_info()
 
-
-def print_status_info(info):
-    total = info.get(u'total')
-    downloaded = info.get(u'downloaded')
-    status = info.get(u'status')
-    percent_complete = info.get(u'percent_complete')
-    time = info.get(u'time')
-    progress_bar(percent_complete)
-    # print(downloaded, total, status, percent_complete, time)
-
-
-def perform_update(for_client):
-    app_name, app_version_string, app_version = app_info()
-
+    config_path = os.environ['LOCALAPPDATA'] + "\\warthunderapps\\thundertac\\update\\config.ini"
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read(config_path)
 
     preferred_channel = config['pyupdater']['channel']
     stay_on_channel = config['pyupdater']['strict']
@@ -64,20 +62,22 @@ def perform_update(for_client):
     if preferred_channel != ("alpha" or "beta" or "stable"):
         preferred_channel = ""
 
-    app_update = for_client.update_check(app_name, app_version, channel=preferred_channel, strict=strict)
+    app_update = for_client.update_check(app_name, app_version_int, channel=preferred_channel, strict=strict)
 
     if app_update is not None:
         loguru.logger.info(f"[U] PYUPDATER DLI: ThunderTac v{app_version_string} is not the latest version")
         app_update.download()
-        # if app_update.is_downloaded():
-        #     with open('.ttacver', 'w') as f:
-        #         f.write()
         if app_update.is_downloaded():
-            app_update.extract_overwrite()
-        if app_update.is_downloaded():
+            config_path = os.environ['LOCALAPPDATA'] + "\\warthunderapps\\thundertac\\update\\config.ini"
+            if os.path.isfile(config_path):
+                config['pyupdater']['version'] = app_version_int
+                with open(config_path, 'w') as f:
+                    config.write(f)
             app_update.extract_restart()
+        # sys.exit(69)
+
     else:
-        loguru.logger.info(f"[U] PYUPDATER DLI: ThunderTac v{app_version} is the latest version")
+        loguru.logger.info(f"[U] PYUPDATER DLI: ThunderTac v{app_version_string} is the latest version")
 
 
 def check_for_update():
@@ -92,15 +92,14 @@ def check_for_update():
     # except KeyError:
     #     pass
 
-    perform_update(client)
+    _update_(client)
 
 
-invoker = __name__
-if invoker == "__main__":
+if __name__ == "__main__":
     # TODO: Manual Update Check & Update
     input("Press any key to exit..")
     sys.exit()
 
-elif invoker == "auto_update":
+elif __name__ == "ttac_new":
     check_for_update()
 

@@ -13,10 +13,8 @@ from requests import get
 from requests.exceptions import ReadTimeout, ConnectTimeout
 from xmltodict import unparse
 
-import constants
+from config import WebInterfaceEndpoints as WebAPI
 
-debug_mode = False
-informed = False
 
 maps = {
     '000000010383cfdf': 'arcade_norway_plain_map',
@@ -232,9 +230,9 @@ def latlon2meters(lat1, lon1, lat2, lon2):
 def main_def():
     while True:
         try:
-            urllib.request.urlretrieve('http://localhost:8111/map.img', 'map.jpg')
-            map_obj = get('http://localhost:8111/map_obj.json', timeout=0.02).json()
-            inf_req = get('http://localhost:8111/map_info.json', timeout=0.02).json()
+            urllib.request.urlretrieve(WebAPI.LMAP, 'map.jpg')
+            map_obj = get(WebAPI.OBJT, timeout=0.02).json()
+            inf_req = get(WebAPI.INFO, timeout=0.02).json()
             break
         except (json.decoder.JSONDecodeError) as e:
             pass
@@ -395,7 +393,7 @@ def main_def():
 
 
 def get_data():
-    inf_req = get(constants.WebAPI.INFO, timeout=(0.02, 1)).json()
+    inf_req = get(WebAPI.INFO, timeout=(0.02, 1)).json()
     map_max_m = inf_req['map_max']
     map_min_m = inf_req['map_min']
     grid_zero = inf_req['grid_zero']
@@ -422,7 +420,7 @@ def get_info(show=False):
         return: low resolution image of the location
     """
 
-    r = requests.get(constants.WebAPI.LMAP, stream=True)
+    r = requests.get(WebAPI.LMAP, stream=True)
     r.raise_for_status()
     r.raw.decode_content = True
     with PIL.Image.open(r.raw) as img:
