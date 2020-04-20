@@ -3,9 +3,37 @@ import os
 import sys
 
 import loguru
-from pyupdater.client import Client
 
 from client_config import ClientConfig
+
+from pyupdater.client import Client
+
+from ttac_ver import Version
+
+case = ''
+cur_major = ''
+cur_minor = ''
+cur_patch = ''
+curr_channel = ''
+
+
+def app_info():
+    version_string = Version.APP_VERSION
+    channel = None
+    major, minor, patch, channel, release = version_string.split('.')
+    case = int(channel)
+    if case == 0:
+        channel = "alpha"
+    elif case == 1:
+        channel = "beta"
+    elif case == 2:
+        channel = "stable"
+    else:
+        channel = ""
+
+    name = ClientConfig.APP_NAME
+    version = f"{major}.{minor}.{patch}{channel}"
+    return name, version
 
 
 def progress_bar(percent):
@@ -40,28 +68,8 @@ elif invoker == "auto_update":
     # except KeyError:
     #     pass
 
-    APP_NAME = ClientConfig.APP_NAME
 
-    with open('.ttacver', 'r') as r:
-        version_file = r.read()
-
-    if os.stat('.ttacver').st_size == 0:
-        print('File is empty')
-    else:
-        cur_major, cur_minor, cur_patch, cur_channel, release = version_file.split('.')
-
-        cur_channel = int(cur_channel)
-        if cur_channel == 0:
-            CUR_APP_CHANNEL = "alpha"
-        elif cur_channel == 1:
-            CUR_APP_CHANNEL = "beta"
-        elif cur_channel == 2:
-            CUR_APP_CHANNEL = "stable"
-
-    if cur_channel != 2:
-        APP_VERSION = f"{cur_major}.{cur_minor}.{cur_patch}{CUR_APP_CHANNEL}"
-    else:
-        APP_VERSION = f"{cur_major}.{cur_minor}.{cur_patch}"
+    APP_NAME, APP_VERSION = app_info()
 
     config = configparser.ConfigParser()
     config.read('config.ini')

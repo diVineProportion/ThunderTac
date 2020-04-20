@@ -4,30 +4,16 @@ import subprocess
 import sys
 import time
 
-import version
-
 from client_config import ClientConfig
 
-client = ClientConfig
+from ttac_update import app_info
+
+from client_config import ClientConfig
 
 
 if __name__ == "__main__":
 
-    APP_NAME = client.APP_NAME
-
-    with open('.ttacver', 'r') as r:
-        version_file = r.read()
-
-    cur_major, cur_minor, cur_patch, cur_channel, release = version_file.split('.')
-    cur_channel = int(cur_channel)
-    if cur_channel == 0:
-        APP_CHANNEL = "alpha"
-    elif cur_channel == 1:
-        APP_CHANNEL = "beta"
-    elif cur_channel == 2:
-        APP_CHANNEL = "stable"
-
-    APP_VERSION = f"{cur_major}.{cur_minor}.{cur_patch}{APP_CHANNEL}"
+    APP_VERSION = app_info()[1]
 
     os.system(f'pyupdater build --app-version={APP_VERSION} --pyinstaller-log-info win.spec')
     os.system('pyupdater pkg --process --sign')
