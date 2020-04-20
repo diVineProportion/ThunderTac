@@ -82,8 +82,8 @@ elif invoker == "auto_update":
     if preferred_channel != ("alpha" or "beta" or "stable"):
         preferred_channel = ""
     app_update = client.update_check(APP_NAME, APP_VERSION, channel=preferred_channel, strict=strict)
-
     if app_update is not None:
+        loguru.logger.info(f"[U] PYUPDATER DLI: ThunderTac v{APP_VERSION} is not the latest version")
         app_update.download()
         # if app_update.is_downloaded():
         #     with open('.ttacver', 'w') as f:
@@ -93,4 +93,4 @@ elif invoker == "auto_update":
         if app_update.is_downloaded():
             app_update.extract_restart()
     else:
-        loguru.logger.info(f"[U] PYUPDATER DLI: ThunderTac v{APP_VERSION} is the latest .ttacver.")
+        loguru.logger.info(f"[U] PYUPDATER DLI: ThunderTac v{APP_VERSION} is the latest version")
