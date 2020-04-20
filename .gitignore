@@ -60,6 +60,7 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+*.spec.bak
 
 # Installer logs
 pip-log.txt
@@ -251,4 +252,3 @@ pyu-data/
 /pyu-data/deploy/
 /pyu-data/files/
 /pyu-data/new/
-

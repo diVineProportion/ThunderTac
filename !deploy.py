@@ -4,12 +4,7 @@ import subprocess
 import sys
 import time
 
-from client_config import ClientConfig
-
-from ttac_update import app_info
-
-from client_config import ClientConfig
-
+from ttac_new import app_info
 
 if __name__ == "__main__":
 

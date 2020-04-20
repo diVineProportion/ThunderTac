@@ -16,10 +16,13 @@ import requests
 import simplejson as json
 
 import constants
-import ttac_update
 import map_info
 import userinfo
 from client_config import ClientConfig
+
+from  ttac_new import check_for_update
+
+check_for_update()
 
 windows = linux = darwin = False
 platform = userinfo.system_info()

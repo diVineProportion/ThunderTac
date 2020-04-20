@@ -1,0 +1,12 @@
+arrow
+loguru
+ntplib
+requests
+simplejson
+Pillow
+ImageHash
+numpy
+xmltodict
+future
+PyUpdater[scp]
+# -e git://github.com/Digital-Sapphire/PyUpdater.git@master#egg=pyupdater
