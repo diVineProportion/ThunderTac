@@ -4,6 +4,8 @@ import subprocess
 import sys
 import time
 
+import version
+
 from client_config import ClientConfig
 
 client = ClientConfig

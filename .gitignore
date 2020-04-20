@@ -244,3 +244,9 @@ fabric.properties
 *.acmi
 temp.ini
 ACMI/
+/keypack.pyu
+/.pyupdater/
+/pyu-data/
+/pyu-data/deploy/
+/pyu-data/files/
+/pyu-data/new/
