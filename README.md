@@ -11,6 +11,7 @@
 
 
 <details>
+ 
  - Location: `%LOCALAPPDATA%\WarThunderApps\ThunderTac\update\config.ini`
  - Access: `ThunderTac.exe --config 1`
 
@@ -51,10 +52,13 @@ strict = `[ True | False ]`
 [configinit]
 ```
 first_run = `[ True | False ]`
+
 </details>
 
 ## Platform Information  
+
 <details>  
+
 ##### PC  
 + Windows  
   + \#PCMasterRace  
@@ -81,6 +85,7 @@ first_run = `[ True | False ]`
 > \* I began working with someone on PS4 to see if it outputs the web interface (this is what is needed for the data)  
 and we were able to verify that the PS4 does output the map, but we weren't able to do a proper test. I am fairly  
 confident that this works, but don't hold me to it. You will need a laptop or computer on the **same network** as the PS4.
+
 </details>
 
   ### TODO
