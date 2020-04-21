@@ -3,57 +3,38 @@
 
 ![](https://raw.githubusercontent.com/diVineProportion/ThunderTac/master/resources/thundertac_white_400.png)  
 
----
-
 
  
 ## CONFIGURATION (config.ini)
-
 
 <details>
  
  - Location: `%LOCALAPPDATA%\WarThunderApps\ThunderTac\update\config.ini`
  - Access: `ThunderTac.exe --config 1`
 
-```
-[network]
-```
-source_ip = `[ 127.0.0.1 | localhost | 192.168.xxx.xxx ]`
-source_pt = `[ 8111 ]`
-```
-[general]
-```
-ttac_usr = `[ player's name ]` must match in-game name
-ttac_mas = `[ hosters name ]`
-ttac_rec = `[ any string ] `
-```
-[loguru]
-```
-level = `[ CRITICAL | WARNING | DEBUG | INFO ]`
-```
-[debug]
-```
-debug_on = `[ True | False ]`
-```
-[ftpcred]
-```
 
-ftp_send = `[ True | False ]`
-ftp_addr = `[ any ftp address ]`
-ftp_user = `[ username | anonymous ]`
-ftp_pass = `[ password |  ]`
-ftp_sess = `[ /some/remote/path ]`
-```
-[pyupdater]
-```
-channel = `[ stable | beta | alpha ]`
-strict = `[ True | False ]`
-```
-[configinit]
-```
-first_run = `[ True | False ]`
 
-</details>
+|categ\|y|key|value|description|notes|
+|--|--|--|--|--|
+netw\|k | source_ip | `127.0.0.1` \| `localhost` \| `192.168.xxx.xxx` | address to access the telemetry | PS4 / XBO directions below
+netw\|k | source_pt | `8111 `| port to access the telemetry | don't change this unless you know what you are doing| 
+general | ttac_usr |  `diVineProption` | name displayed in tacview | must match in-game name |
+general | ttac_mas |  `diVineProption` | host of the session | must match in-game name | 
+general | ttac_rec |  `ttac.rec` | chat cmd to start rec | must match exactly |
+~~general~~ | ~~ttac_end~~ |  ~~`ttac.end`~~ | ~~chat cmd to end rec~~ | DISABLED |
+loguru | level |  `CRITICAL` \| `WARNING` \| `DEBUG` \| `INFO` | level of msgs that show in cmd window | `INFO` for the least |
+debug | debug_on |  `True` \| `False` | automatic recording start in mp battles | for single player recording |
+ftpcred | ftp_send |  `True` \| `False` | Submit zipped recording | Avoid having to send file to host (for merging) manually
+ftpcred | ftp_addr |  `address` | ftp submission adress (working public sample provided) | don't include the protocol `ftp://` |
+ftpcred | ftp_user |  `username` \| `anonymous` | ftp username credentials | not sure if anonymous works for you ftp server |
+ftpcred | ftp_pass |  `passw\|d` \| `None` | ftp password credentials | leave blank for ftp with anonymous logins  |
+ftpcred | ftp_sess |  `/some/remote/path` | path on remote directory | easier to find your you session
+pyupdater | channel |  `stable` \|  `beta` \| `alpha` | release channel | stable safest |
+pyupdater | strict |  `True` \| `False` | stay on set channel | set False for all updates 
+configinit | first_run |  `True` \| `False` | first time running | soon depreciated |
+
+
+# </details>
 
 ## Platform Information  
 
