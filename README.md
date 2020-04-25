@@ -7,9 +7,9 @@
 ```
 [network]
 ```
-source_ip = `[ 127.0.0.1 | localhost | 192.168.xxx.xxx ]`
+net_host = `[ 127.0.0.1 | localhost | 192.168.xxx.xxx ]`
 
-source_pt = `[ 8111 ]`
+net_port = `[ 8111 ]`
 
 ```
 [general]

@@ -1,5 +1,3 @@
-
-
 import configparser
 import math
 import os
@@ -18,7 +16,8 @@ import ntplib
 import requests
 import simplejson as json
 
-import _update_
+import config
+# import _update_
 import arguments
 import map_info
 import userinfo
@@ -40,14 +39,22 @@ elif platform == "Linux":
 elif platform == "Darwin":
     darwin = True
 
+
+init_run = cfg_configinit()
+
+if init_run:
+    import ascii_config
+
+
 ttac_usr, ttac_mas, ttac_rec = cfc_general()
-ttac_log = cfg_loguru()
-ttac_dbg = cfg_debug()
+logger_l = cfg_loguru()
+debug_on = cfg_debug()
 ftp_send, ftp_addr, ftp_user, ftp_pass, ftp_sess = cfg_ftpcred()
-first_run = cfg_configinit()
+
+
 
 loguru.logger.remove()
-loguru.logger.add(sys.stderr, level=ttac_log)
+loguru.logger.add(sys.stderr, level=logger_l)
 
 CONVTO_MPS = 0.277778
 
@@ -467,7 +474,7 @@ while True:
 
         if State.Recorder.gamechat_start:
             if State.Map.information:  # and State.Messages.trigger_chat is False:
-                if ttac_dbg:
+                if debug_on:
                     loguru.logger.debug("[T] DEBUG TRIGGER RECOGNIZED")
                     time_rec_start = time.time()
                     loguru.logger.info("[R] RECORDING STARTED")
