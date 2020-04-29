@@ -252,3 +252,5 @@ pyu-data/
 /pyu-data/deploy/
 /pyu-data/files/
 /pyu-data/new/
+/hold/*/
+
