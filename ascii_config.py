@@ -3,7 +3,7 @@ import json
 import os
 
 from asciimatics.widgets import Frame, TextBox, Layout, Label, Divider, Text, \
-    CheckBox, RadioButtons, Button, PopUpDialog, TimePicker, DatePicker, Background, DropdownList, PopupMenu
+    CheckBox, RadioButtons, Button, PopUpDialog, TimePicker, DatePicker, Background, DropdownList, PopupMenu, ListBox
 from asciimatics.event import MouseEvent
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
@@ -48,23 +48,18 @@ class DemoFrame(Frame):
         # super(DemoFrame, self).__init__(screen, screen.height, screen.width, hover_focus=True, has_border=False,
         #                                 data=form_data)
         super(DemoFrame, self).__init__(screen, int(screen.height * 2 // 3), int(screen.width * 2 // 3),
-                                        data=form_data, has_shadow=True, name="My Form", hover_focus=True,has_border=False)
+                                        data=form_data, has_shadow=True, name="My Form", hover_focus=True, has_border=False)
         layout = Layout([1, 18, 1, 1])
         self.add_layout(layout)
         self.set_theme("bright")
         self._reset_button = Button("Reset", self._reset)
-        layout.add_widget(Text(label="net_host:", name="net_host", on_change=self._on_change,
-                               validator=r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$|^localhost$"), 1)
-        layout.add_widget(
-            Text(label="net_port:", name="net_port", on_change=self._on_change, validator="^[0-9]{4,5}$"), 1)
-        layout.add_widget(
-            Text(label="ttac_usr:", name="ttac_usr", on_change=self._on_change, validator="^[a-zA-Z0-9\\-\\_]{4,16}$",
-                 max_length=16), 1)
+        layout.add_widget(Text(label="net_host:", name="net_host", on_change=self._on_change, validator=r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$|^localhost$"), 1)
+        layout.add_widget(Text(label="net_port:", name="net_port", on_change=self._on_change, validator="^[0-9]{4,5}$"), 1)
+        layout.add_widget(Text(label="ttac_usr:", name="ttac_usr", on_change=self._on_change, validator="^[a-zA-Z0-9\\-\\_]{4,16}$", max_length=16), 1)
         layout.add_widget(Text(label="ttac_mas:", name="ttac_mas", on_change=self._on_change), 1)
-        layout.add_widget(Text(label="debug_on:", name="debug_on", on_change=self._on_change), 1)
-        # layout.add_widget(
-        #     DropdownList([("INFO", 1), ("DEBUG", 2), ("WARNING", 3), ("CRITICAL", 4), ], label="logger_l",
-        #                  name="logger_l", on_change=self._on_change), 1)
+        layout.add_widget(Text(label="debug_on:", name="debug_on", on_change=self._on_change, validator="^True$|^False$"), 1)
+        # layout.add_widget(ListBox(height=4, options=[("INFO", 1), ("DEBUG", 2), ("WARNING", 3), ("CRITICAL", 4)], label="logger_l", name="logger_l", on_change=self._on_change), 1)
+        # layout.add_widget(RadioButtons(label="idk", name="idk", options=[("True", 1), ("False", 2)], on_change=self._on_change), 1)
         layout.add_widget(Text(label="logger_l:", name="logger_l", on_change=self._on_change, validator="^INFO$|^DEBUG$|^WARNING$|^CRITICAL$"), 1)
         layout.add_widget(Text(label="ftp_send:", name="ftp_send", on_change=self._on_change, validator="^True$|^False$"), 1)
         layout.add_widget(Text(label="ftp_addr:", name="ftp_addr", on_change=self._on_change), 1)
