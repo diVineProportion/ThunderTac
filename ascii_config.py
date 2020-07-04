@@ -16,7 +16,7 @@ import datetime
 from config import cfc_general, cfg_network, cfg_loguru, cfg_debug, cfg_ftpcred, cfg_configinit, cfg_pyupdater
 
 net_host, net_port = cfg_network()
-ttac_usr, ttac_mas, ttac_rec = cfc_general()
+ttac_usr, ttac_mas, ttac_rec, ttac_int = cfc_general()
 logger_l = cfg_loguru()
 debug_on = cfg_debug()
 ftp_send, ftp_addr, ftp_user, ftp_pass, ftp_sess = cfg_ftpcred()
@@ -30,6 +30,7 @@ form_data = {
     "ttac_usr": ttac_usr,
     "ttac_mas": ttac_mas,
     "ttac_rec": ttac_rec,
+    "ttac_int": ttac_int,
     "logger_l": logger_l,
     "debug_on": json.dumps(debug_on).capitalize(),
     "ftp_send": json.dumps(ftp_send).capitalize(),
@@ -57,6 +58,8 @@ class DemoFrame(Frame):
         layout.add_widget(Text(label="net_port:", name="net_port", on_change=self._on_change, validator="^[0-9]{4,5}$"), 1)
         layout.add_widget(Text(label="ttac_usr:", name="ttac_usr", on_change=self._on_change, validator="^[a-zA-Z0-9\\-\\_]{4,16}$", max_length=16), 1)
         layout.add_widget(Text(label="ttac_mas:", name="ttac_mas", on_change=self._on_change), 1)
+        layout.add_widget(Text(label="ttac_rec:", name="ttac_rec", on_change=self._on_change), 1)
+        layout.add_widget(Text(label="ttac_int:", name="ttac_int", on_change=self._on_change), 1)
         layout.add_widget(Text(label="debug_on:", name="debug_on", on_change=self._on_change, validator="^True$|^False$"), 1)
         # layout.add_widget(ListBox(height=4, options=[("INFO", 1), ("DEBUG", 2), ("WARNING", 3), ("CRITICAL", 4)], label="logger_l", name="logger_l", on_change=self._on_change), 1)
         # layout.add_widget(RadioButtons(label="idk", name="idk", options=[("True", 1), ("False", 2)], on_change=self._on_change), 1)
@@ -69,11 +72,12 @@ class DemoFrame(Frame):
         layout.add_widget(Text(label="pyu_uchn:", name="pyu_uchn", on_change=self._on_change, validator="^alpha|^beta$|^stable$"), 1)
         layout.add_widget(Text(label="pyu_schn:", name="pyu_schn", on_change=self._on_change, validator="^True$|^False$"), 1)
         layout.add_widget(Text(label="init_run:", name="init_run", on_change=self._on_change, validator="^True$|^False$"), 1)
-        layout2 = Layout([10, 10, 10])
+        layout2 = Layout([10, 10, 10, 10])
         self.add_layout(layout2)
         layout2.add_widget(self._reset_button, 0)
-        layout2.add_widget(Button("Verify and Save", self._verify), 1)
-        layout2.add_widget(Button("Quit", self._quit), 2)
+        layout2.add_widget(Button("Help", self._help), 1)
+        layout2.add_widget(Button("Save", self._save), 2)
+        layout2.add_widget(Button("Quit", self._quit), 3)
         self.fix()
 
     def process_event(self, event):
@@ -123,7 +127,32 @@ class DemoFrame(Frame):
         self.reset()
         raise NextScene()
 
-    def _verify(self):
+    def _help(self):
+        message = "net_host: Change if telemetry originates from source other than this machine (PS4, XBO, 2nd PC)*. \n"
+        message += "net_port: This likely will never change, but the option was provided (HOSTSFILE, PORTFORWARDING). \n"
+        message += "ttac_usr: This is the name that your object will display in tacview. (Best to keep it your Alias. \n"
+        message += "ttac_mas: Session leader, starts the synced recorder for multiple clients. (MATCH IN-GAME NAME)*. \n"
+        message += "ttac_rec: Command issued by leader to start synced recordings. This must match the session hosts. \n"
+        message += "ttac_int: Timeout adjustment. Will affect the time between each frame (data snapshot).            \n"
+        message += "debug_on: Force start recordings of online matches. Test flights automatically start recording.   \n"
+        message += "logger_l: Logging level displayed to stdout. Partially Implemented. (INFO|DEBUG|WARNING|CRITICAL) \n"
+        message += "ftp_send: Enable or disable automatic FTP submission post-flight (soon to be deprecated).         \n"
+        message += "ftp_addr: Address of automatic FTP submission                                                     \n"
+        message += "ftp_user: Username for automatic FTP submission                                                   \n"
+        message += "ftp_pass: Password for automatic FTP submission                                                   \n"
+        message += "ftp_sess: Subfolder in remote FTP directory (used to isolate sessions)                            \n"
+        message += "pyu_uchn: Automatic updates channel that you will recieve (alpha|beta|stable)                     \n"
+        message += "pyu_schn: Strict channel (stay only on set channel)                                               \n"
+        message += "init_run: True on first run only. This configuration dialog will not be shown after*              \n"
+        message += "\n\n"
+        message += "*ThunderTac runs on laptop or 2nd PC recording data from a PS4, XBO, or a second computer*        \n"
+        message += "*Must match session host, case sensitive. (NO SQUADRON TAGS!)*                                    \n"
+        message += "*thundertac -c to call this dialog in the future, or simply run the configuration shortcut*       \n"
+
+        self._scene.add_effect(
+            PopUpDialog(self._screen, message, ["OK"]))
+
+    def _save(self):
         # Build result of this form and display it.
         try:
             self.save(validate=True)
@@ -148,7 +177,7 @@ class DemoFrame(Frame):
             for key, value in self.data.items():
                 if key in ["net_host", "net_port"]:
                     config['network'][key] = value
-                elif key in ["ttac_usr", "ttac_mas", "ttac_rec"]:
+                elif key in ["ttac_usr", "ttac_mas", "ttac_rec", "ttac_int"]:
                     config['general'][key] = value
                 elif key in ["logger_l"]:
                     config['loguru'][key] = value
@@ -168,6 +197,7 @@ class DemoFrame(Frame):
             # config['general']['ttac_usr'] = str(ttac_usr)
             # config['general']['ttac_mas'] = ttac_mas
             # config['general']['ttac_rec'] = ttac_rec
+            # config['general']['ttac_int'] = ttac_int
             # config['loguru']['logger_l'] = logger_l
             # config['debug']['debug_on'] = str(debug_on)
             # config['ftpcred']['ftp_send'] = str(ftp_send)

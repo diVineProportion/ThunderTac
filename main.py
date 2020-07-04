@@ -46,7 +46,7 @@ if init_run:
     import ascii_config
 
 
-ttac_usr, ttac_mas, ttac_rec = cfc_general()
+ttac_usr, ttac_mas, ttac_rec, ttac_int = cfc_general()
 logger_l = cfg_loguru()
 debug_on = cfg_debug()
 ftp_send, ftp_addr, ftp_user, ftp_pass, ftp_sess = cfg_ftpcred()
@@ -269,7 +269,7 @@ def get_unit():
         with open('wtunits.json', 'r', encoding='utf-8') as f:
             wt_units_lookup = json.loads(f.read())
     except FileNotFoundError:
-        wt_units_host = 'https://raw.githubusercontent.com/diVineProportion/ThunderTac/master/wtunits.json'
+        wt_units_host = 'https://raw.githubusercontent.com/diVineProportion/ThunderTac/rewrite/wtunits.json'
         wt_units_data = requests.get(wt_units_host).json()
         wt_units_version = wt_units_data['version']
         loguru.logger.info(f"[A] UNITS LIBRARY: War Thunder v'{wt_units_version}' Loaded")

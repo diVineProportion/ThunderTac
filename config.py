@@ -15,11 +15,25 @@ config_path = f"{config_root}\\{config_file}"
 def ensure_config():
     if not os.path.exists(config_root):
         os.makedirs(config_root, exist_ok=True)
+
     if not os.path.isfile(config_path):
         ttac_cfg_file = 'https://raw.githubusercontent.com/diVineProportion/ThunderTac/rewrite/config.ini'
         ttac_cfg_data = requests.get(ttac_cfg_file)
         with open(config_path, 'wb') as f:
             f.write(ttac_cfg_data.content)
+    elif os.path.isfile(config_path):
+        ttac_cfg_file = 'https://raw.githubusercontent.com/diVineProportion/ThunderTac/rewrite/config.ini'
+        ttac_cfg_data = requests.get(ttac_cfg_file)
+        temp_file = config_path + ".temp"
+        with open(temp_file, 'wb') as f:
+            f.write(ttac_cfg_data.content)
+        with open(temp_file, 'r') as file1:
+            with open(config_path, 'r') as file2:
+                difference = set(file1).difference(file2)
+            difference.discard('\n')
+            # with open('diff.txt', 'w') as file_out:
+            #     for line in difference:
+            #         file_out.write(line)
 
 
 def cfg_loguru():
@@ -38,12 +52,17 @@ def cfg_debug():
 
 
 def cfc_general():
-    config = configparser.ConfigParser()
-    config.read(config_path)
-    ttac_usr = config['general']['ttac_usr']
-    ttac_mas = config['general']['ttac_mas']
-    ttac_rec = config['general']['ttac_rec']
-    return ttac_usr, ttac_mas, ttac_rec
+    try:
+        config = configparser.ConfigParser()
+        config.read(config_path)
+        ttac_usr = config['general']['ttac_usr']
+        ttac_mas = config['general']['ttac_mas']
+        ttac_rec = config['general']['ttac_rec']
+        ttac_int = config['general']['ttac_int']
+    except KeyError as err:
+        str(err)
+
+    return ttac_usr, ttac_mas, ttac_rec, ttac_int
 
 
 def cfg_ftpcred():
