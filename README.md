@@ -1,4 +1,7 @@
 # ThunderTac  
+
+[![Join the chat at https://gitter.im/War-Thunder/ThunderTac](https://badges.gitter.im/War-Thunder/ThunderTac.svg)](https://gitter.im/War-Thunder/ThunderTac?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ###### (THIS README IS AN INCOMPLETE WORK IN PROGRESS)
 
 ![](https://raw.githubusercontent.com/diVineProportion/ThunderTac/master/resources/thundertac_white_400.png)  
