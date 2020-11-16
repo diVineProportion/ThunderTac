@@ -1,6 +1,21 @@
 {
-    "version": "1.99.0.76",
+    "version": "1.101.1.33",
     "units": {
+        "us_ssn_774_virginia": {
+            "full": "Virginia-class",
+            "long": "Virginia-class",
+            "short": "Submarine"
+        },
+        "uk_s30_vigilant": {
+            "full": "Vanguard-class",
+            "long": "Vanguard-class",
+            "short": "Submarine"
+        },
+        "ussr_p885_yasen": {
+            "full": "Yasen-class",
+            "long": "Yasen-class",
+            "short": "Submarine"
+        },
         "ships/uss_cv_immortal": {
             "full": "Carrier",
             "long": "Carrier",
@@ -236,6 +251,11 @@
             "long": "Light Cruiser",
             "short": "Light Cruiser"
         },
+        "ships/ijn_cv_zuikaku_story": {
+            "full": "Carrier",
+            "long": "Carrier",
+            "short": "Carrier"
+        },
         "ships/ijn_cv_zuikaku": {
             "full": "Carrier",
             "long": "Carrier",
@@ -285,6 +305,11 @@
             "full": "Light Cruiser",
             "long": "Light Cruiser",
             "short": "Light Cruiser"
+        },
+        "ships/uss_cv_wasp_story": {
+            "full": "Carrier",
+            "long": "Carrier",
+            "short": "Carrier"
         },
         "ships/uss_cv_wasp": {
             "full": "Carrier",
@@ -386,7 +411,22 @@
             "long": "Heavy Cruiser",
             "short": "Heavy Cruiser"
         },
+        "ships/uss_bb_arizona_story": {
+            "full": "Battleship",
+            "long": "Battleship",
+            "short": "Battleship"
+        },
         "ships/uss_bb_arizona": {
+            "full": "Battleship",
+            "long": "Battleship",
+            "short": "Battleship"
+        },
+        "ships/ijn_bb_nagato_story": {
+            "full": "Battleship",
+            "long": "Battleship",
+            "short": "Battleship"
+        },
+        "ships/ijn_bb_yamato_story": {
             "full": "Battleship",
             "long": "Battleship",
             "short": "Battleship"
@@ -400,6 +440,26 @@
             "full": "Battleship",
             "long": "Battleship",
             "short": "Battleship"
+        },
+        "ships/ijn_cv_soryu_story": {
+            "full": "Carrier",
+            "long": "Carrier",
+            "short": "Carrier"
+        },
+        "ships/ijn_cv_akagi_story": {
+            "full": "Carrier",
+            "long": "Carrier",
+            "short": "Carrier"
+        },
+        "ships/uss_cv_enterprise_story": {
+            "full": "Carrier",
+            "long": "Carrier",
+            "short": "Carrier"
+        },
+        "ships/uss_cv_lexington_story": {
+            "full": "Carrier",
+            "long": "Carrier",
+            "short": "Carrier"
         },
         "ships/ijn_cv_soryu": {
             "full": "Carrier",
@@ -1542,7 +1602,7 @@
             "short": "Medium tank"
         },
         "uk_mk1_grant": {
-            "full": "Cruiser Tank Grant I",
+            "full": "Grant I",
             "long": "Grant I",
             "short": "Cruiser tank"
         },
@@ -1595,6 +1655,11 @@
             "full": "152 mm Gun Tank M60A2",
             "long": "M60A2",
             "short": "Medium tank"
+        },
+        "us_m60a3_slep": {
+            "full": "M60 AMBT",
+            "long": "M60 AMBT",
+            "short": "MBT"
         },
         "us_m163_vulcan": {
             "full": "Gun, Air Defence Artillery, Self-Propelled: 20-mm, M163",
@@ -1765,6 +1830,16 @@
             "full": "Medium Tank M46 Patton (73 Tank Batalion)",
             "long": "M46",
             "short": "Medium tank"
+        },
+        "us_amx_13_75": {
+            "full": "AMX-13",
+            "long": "AMX-13",
+            "short": "Light tank"
+        },
+        "us_amx_13_90": {
+            "full": "AMX-13-90",
+            "long": "AMX-13-90",
+            "short": "Light tank"
         },
         "ussr_rbt_5": {
             "full": "RBT-5",
@@ -2336,6 +2411,11 @@
             "long": "Dicker Max",
             "short": "SPG"
         },
+        "germ_sdkfz_251_10": {
+            "full": "m.Schütz.Pz.Wg. (Sd.Kfz.251/10)",
+            "long": "Sd.Kfz.251/10",
+            "short": "SPG"
+        },
         "germ_pzkpfw_38t_Aufklarungspanzer": {
             "full": "Aufklärungspanzer 38(t)",
             "long": "Sd.Kfz. 140/1",
@@ -2536,6 +2616,11 @@
             "long": "Panther II",
             "short": "Medium tank"
         },
+        "germ_leopard_c2_mexas": {
+            "full": "Leopard C2A1 MEXAS",
+            "long": "C2A1 ",
+            "short": "MBT"
+        },
         "germ_leopard_I_a1": {
             "full": "Leopard A1A1",
             "long": "Leopard A1A1",
@@ -2667,8 +2752,8 @@
             "short": "Infantry tank"
         },
         "uk_a_22f_mk_7_churchill_1944": {
-            "full": "Infantry Tank Mk IV A22F \"Churchill\" Mk VII",
-            "long": "Churchill Mk VII",
+            "full": "Tank, Infantry, Mk IV, Churchill VII (A22F)",
+            "long": "Churchill VII",
             "short": "Infantry tank"
         },
         "uk_a27m_cromwell_5": {
@@ -2678,16 +2763,16 @@
         },
         "uk_a27m_cromwell_5_rp3": {
             "full": "Tank, Cruiser, Mk VIII, Cromwell V (A27M) (RP-3)",
-            "long": "Cromwell Mk.V (RP-3)",
+            "long": "Cromwell V (RP-3)",
             "short": "Cruiser tank"
         },
         "uk_a30_challenger": {
-            "full": "A30 Challenger",
+            "full": "Tank, Cruiser, Challenger (A30)",
             "long": "Challenger",
             "short": "Cruiser tank"
         },
         "uk_a30_sp_avenger": {
-            "full": "A30 SP Avenger",
+            "full": "Self Propelled 17pdr, Avenger (A30)",
             "long": "Avenger",
             "short": "SPG"
         },
@@ -2717,7 +2802,7 @@
             "short": "SPAA"
         },
         "uk_crusader_aa_mk_2": {
-            "full": "Crusader AA Mk II",
+            "full": "Tank, Cruiser, Crusader III, AA Mk II",
             "long": "Crusader AA Mk II",
             "short": "SPAA"
         },
@@ -2740,6 +2825,11 @@
             "full": "Tank Medium Gun Charioteer Mk VII",
             "long": "Charioteer Mk VII",
             "short": "SPG"
+        },
+        "uk_crusader_mk_2_the_saint": {
+            "full": "Tank, Cruiser, Mk VIA, Crusader II (A15)",
+            "long": "Crusader \"The Saint\"",
+            "short": "Cruiser tank"
         },
         "uk_crusader_mk_2": {
             "full": "Tank, Cruiser, Mk VIA, Crusader II (A15)",
@@ -2792,7 +2882,7 @@
             "short": "Infantry tank"
         },
         "uk_a_13_mk2_1939": {
-            "full": "Mark IV A13 Mk II",
+            "full": "Tank, Cruiser, Mk IV (A13 Mk II) 1939",
             "long": "A13 Mk II",
             "short": "Cruiser tank"
         },
@@ -2833,7 +2923,7 @@
         },
         "uk_a_13_mk1_3rd_rtr": {
             "full": "Tank, Cruiser, Mk III (A13) (3rd Royal Tank Regiment)",
-            "long": "A13 Mk.I (3rd R.T.R.)",
+            "long": "A13 Mk I (3rd R.T.R.)",
             "short": "Cruiser tank"
         },
         "uk_a_13_mk1": {
@@ -2852,12 +2942,12 @@
             "short": "Medium tank"
         },
         "uk_a_34_comet_iron_duke": {
-            "full": "A34 Comet I Iron Duke IV",
-            "long": "Iron Duke IV",
+            "full": "Tank, Cruiser, Comet I (A34) \"Iron Duke IV\"",
+            "long": "Comet I \"Iron Duke IV\"",
             "short": "Medium tank"
         },
         "uk_a_34_comet": {
-            "full": "A34 Comet I",
+            "full": "Tank, Cruiser, Comet I (A34)",
             "long": "Comet I",
             "short": "Medium tank"
         },
@@ -2927,8 +3017,8 @@
             "short": "Infantry tank"
         },
         "uk_a_22b_mk_3_churchill_1942": {
-            "full": "Infantry Tank Mk IV A22 \"Churchill\" Mk III",
-            "long": "Churchill Mk III",
+            "full": "Tank, Infantry, Mk IV, Churchill III (A22)",
+            "long": "Churchill III",
             "short": "Infantry tank"
         },
         "uk_a_22_mk_1_churchill_1941": {
@@ -3096,6 +3186,11 @@
             "long": "AMX-50 (1950)",
             "short": "Medium tank"
         },
+        "fr_somua_sm": {
+            "full": "Somua SM",
+            "long": "Somua SM",
+            "short": "Тяжелый танк"
+        },
         "fr_amx_50": {
             "full": "AMX-50",
             "long": "AMX-50",
@@ -3122,8 +3217,8 @@
             "short": "SPG"
         },
         "fr_pzkpfw_V_panther_dauphine": {
-            "full": "Panther «Dauphine»",
-            "long": "Panther «Dauphine»",
+            "full": "Panther \"Dauphiné\"",
+            "long": "Panther \"Dauphiné\"",
             "short": "Medium tank"
         },
         "fr_lorraine_155": {
@@ -3257,7 +3352,7 @@
             "short": "Light tank"
         },
         "fr_amc_35": {
-            "full": "Char de Combat Renault AMC35 (ACG.1)",
+            "full": "Char de Combat Renault AMC.35 (ACG.1)",
             "long": "AMC.35 (ACG.1)",
             "short": "Light tank"
         },
@@ -3566,6 +3661,11 @@
             "long": "A-20G",
             "short": "A-20G"
         },
+        "arado-196a-3": {
+            "full": "Ar 196 A-3",
+            "long": "Ar 196 A-3",
+            "short": "Ar 196"
+        },
         "arado-234": {
             "full": "Ar 234 B-2",
             "long": "Ar 234 B",
@@ -3584,6 +3684,11 @@
         "su-6_am42": {
             "full": "Su-6 (AM-42)",
             "long": "Su-6 (AM-42)",
+            "short": "Su-6"
+        },
+        "su_6_single": {
+            "full": "Su-6",
+            "long": "Su-6",
             "short": "Su-6"
         },
         "bf-109e-1": {
@@ -3656,6 +3761,11 @@
             "long": "Bf 110 G",
             "short": "Bf 110"
         },
+        "bf_110g_4_hungary": {
+            "full": "▄Bf 110 G-4",
+            "long": "▄Bf 110 G",
+            "short": "▄Bf 110"
+        },
         "blenheim_mkiv": {
             "full": "Blenheim Mk IV",
             "long": "Blenheim",
@@ -3682,6 +3792,11 @@
             "short": "Fw 190"
         },
         "fw-190a-5_cannons": {
+            "full": "Fw 190 A-5",
+            "long": "Fw 190 A",
+            "short": "Fw 190"
+        },
+        "fw-190a-5_cannons_tutorial": {
             "full": "Fw 190 A-5",
             "long": "Fw 190 A",
             "short": "Fw 190"
@@ -3896,6 +4011,21 @@
             "long": "P-47D",
             "short": "P-47"
         },
+        "p-47d_22_re": {
+            "full": "P-47D-22 RE Thunderbolt",
+            "long": "P-47D",
+            "short": "P-47"
+        },
+        "thunderbolt_mk1": {
+            "full": "▄Thunderbolt Mk.1",
+            "long": "▄Thunderbolt Mk.1",
+            "short": "▄Thunderbolt"
+        },
+        "p-47d_23_re": {
+            "full": "▄P-47D-23 RE Thunderbolt",
+            "long": "▄P-47D",
+            "short": "▄P-47"
+        },
         "p-47d_luftwaffe": {
             "full": "▀P-47D Thunderbolt",
             "long": "▀P-47D",
@@ -3905,6 +4035,11 @@
             "full": "▄Mustang Mk IA",
             "long": "▄Mustang Mk I",
             "short": "▄Mustang"
+        },
+        "p-51c-10-nt": {
+            "full": "P-51C-10",
+            "long": "P-51C",
+            "short": "P-51"
         },
         "p-51d-5": {
             "full": "P-51D-5 Mustang",
@@ -3952,6 +4087,11 @@
             "short": "Spitfire"
         },
         "spitfire_ix": {
+            "full": "Spitfire LF Mk IX",
+            "long": "Spitfire",
+            "short": "Spitfire"
+        },
+        "spitfire_ix_tutorial": {
             "full": "Spitfire LF Mk IX",
             "long": "Spitfire",
             "short": "Spitfire"
@@ -4296,6 +4436,11 @@
             "long": "Hornet Mk.III",
             "short": "Hornet"
         },
+        "yp-38": {
+            "full": "YP-38",
+            "long": "YP-38",
+            "short": "YP-38"
+        },
         "p-38g": {
             "full": "P-38G-1 Lightning",
             "long": "P-38G-1",
@@ -4546,6 +4691,11 @@
             "long": "MiG-9",
             "short": "MiG-9"
         },
+        "bi": {
+            "full": "BI",
+            "long": "BI",
+            "short": "BI"
+        },
         "pe-2": {
             "full": "Pe-2 Peshka",
             "long": "Pe-2",
@@ -4699,6 +4849,11 @@
         "su-7b": {
             "full": "Su-7B",
             "long": "Su-7B",
+            "short": "Su-7"
+        },
+        "su-7bkl": {
+            "full": "Su-7BKL",
+            "long": "Su-7BKL",
             "short": "Su-7"
         },
         "typhoon_mk1a": {
@@ -5431,6 +5586,11 @@
             "long": "J-7II",
             "short": "J-7II"
         },
+        "q_5_early": {
+            "full": "Q-5 early",
+            "long": "Q-5 early",
+            "short": "Q-5"
+        },
         "mig-15bis_ns23": {
             "full": "MiG-15bis NS-23",
             "long": "MiG-15bis",
@@ -5481,6 +5641,11 @@
             "long": "IAR-81C",
             "short": "IAR-81C"
         },
+        "p-40f-5_france_ep": {
+            "full": "▄P-40F-5 Lafayette",
+            "long": "▄P-40F-5 Lafayette",
+            "short": "▄P-40F"
+        },
         "p-40f_10": {
             "full": "P-40F-10 Warhawk",
             "long": "P-40F-10",
@@ -5495,6 +5660,11 @@
             "full": "A-4B",
             "long": "A-4B",
             "short": "A-4B"
+        },
+        "f11f_1_late": {
+            "full": "F11F-1 Tiger",
+            "long": "F11F-1",
+            "short": "F11"
         },
         "fj_4b": {
             "full": "FJ-4B",
@@ -5930,6 +6100,11 @@
             "full": "▀MiG-15bis",
             "long": "▀MiG-15",
             "short": "▀MiG-15"
+        },
+        "il_28_german": {
+            "full": "▀IL-28",
+            "long": "▀IL-28",
+            "short": "▀IL-28"
         },
         "la_174": {
             "full": "La-174",
@@ -6374,6 +6549,11 @@
         "il_2m_1943": {
             "full": "IL-2M (1943)",
             "long": "IL-2M",
+            "short": "IL-2"
+        },
+        "il_2_m82": {
+            "full": "IL-2 M-82",
+            "long": "IL-2 M-82",
             "short": "IL-2"
         },
         "hurricane_mk1b": {
@@ -7586,6 +7766,11 @@
             "long": "␙Super Mystere B2",
             "short": "␙Super Mystere B2"
         },
+        "md_460_usa": {
+            "full": "Super Mystere B2",
+            "long": "Super Mystere B2",
+            "short": "Super Mystere B2"
+        },
         "f-104s": {
             "full": "F-104S Starfighter",
             "long": "F-104S",
@@ -8096,10 +8281,15 @@
             "long": "Char 25t",
             "short": "Light tank"
         },
+        "germ_thyssen_henschel_tam_2c": {
+            "full": "Tanque Argentino Mediano 2C",
+            "long": "TAM 2C",
+            "short": "Light tank"
+        },
         "germ_thyssen_henschel_tam": {
             "full": "Tanque Argentino Mediano",
             "long": "TAM",
-            "short": "Medium tank"
+            "short": "Light tank"
         },
         "germ_leopard_a1a1_120": {
             "full": "Leopard A1A1 (L/44)",
@@ -8130,6 +8320,11 @@
             "full": "Fighting Vehicle, Cavalry, M3",
             "long": "M3 Bradley",
             "short": "Light tank"
+        },
+        "us_merkava_mk_3d": {
+            "full": "Merkava Mk.3D",
+            "long": "Merkava Mk.3D",
+            "short": "MBT"
         },
         "us_merkava_mk_2b_late": {
             "full": "Merkava Mk.2B",
@@ -8331,6 +8526,11 @@
             "long": "M11/39",
             "short": "Medium Tank"
         },
+        "it_m14_41_47_40": {
+            "full": "Fiat-Ansaldo M14/41 (47/40)",
+            "long": "M14/41 (47/40)",
+            "short": "Medium Tank"
+        },
         "it_m14_41": {
             "full": "Fiat-Ansaldo M14/41",
             "long": "M14/41",
@@ -8385,6 +8585,21 @@
             "full": "Fiat-Ansaldo Semovente L40 da 47/32",
             "long": "47/32 L40",
             "short": "SPG"
+        },
+        "ussr_t_72b3_2011": {
+            "full": "T-72B3",
+            "long": "T-72B3",
+            "short": "MBT"
+        },
+        "ussr_t_72b3_2017_race": {
+            "full": "T-72B3 ",
+            "long": "T-72B3 ",
+            "short": "MBT"
+        },
+        "ussr_t_72b_1989": {
+            "full": "T-72B (1989)",
+            "long": "T-72B (1989)",
+            "short": "MBT"
         },
         "ussr_t_72b": {
             "full": "T-72B",
@@ -8561,6 +8776,16 @@
             "long": "Lightning F.6",
             "short": "Lightning"
         },
+        "jaguar_gr1": {
+            "full": "Jaguar GR.1",
+            "long": "Jaguar GR.1",
+            "short": "Jaguar"
+        },
+        "jaguar_a": {
+            "full": "Jaguar A",
+            "long": "Jaguar A",
+            "short": "Jaguar"
+        },
         "sea_hawk_fga6": {
             "full": "Sea Hawk FGA.6",
             "long": "Sea Hawk FGA.6",
@@ -8659,6 +8884,11 @@
         "germ_leopard_2a5": {
             "full": "Leopard 2A5",
             "long": "Leopard 2A5",
+            "short": "MBT"
+        },
+        "ussr_t_80u_race": {
+            "full": "T-80U",
+            "long": "T-80U",
             "short": "MBT"
         },
         "ussr_t_80u": {
@@ -9061,6 +9291,11 @@
             "long": "B17B",
             "short": "B17"
         },
+        "saab_b17bs": {
+            "full": "B17BS",
+            "long": "B17BS",
+            "short": "B17"
+        },
         "saab_b18a": {
             "full": "B18A",
             "long": "B18A",
@@ -9311,6 +9546,11 @@
             "long": "M60A3 TTS",
             "short": "MBT"
         },
+        "cn_cm_25": {
+            "full": "CM25",
+            "long": "CM25",
+            "short": "SPG"
+        },
         "cn_cm11": {
             "full": "CM11",
             "long": "CM11",
@@ -9405,6 +9645,11 @@
             "full": "Medium Tank T-69 II G",
             "long": "T-69 II G",
             "short": "Medium tank"
+        },
+        "cn_ztz_96a_race": {
+            "full": "ZTZ96A",
+            "long": "ZTZ96A",
+            "short": "MBT"
         },
         "cn_ztz_96a": {
             "full": "ZTZ96A",
@@ -9531,6 +9776,11 @@
             "long": "Chi-Ha Kai",
             "short": "Medium tank"
         },
+        "jp_type_1_chi_he_5th_regiment": {
+            "full": "Type 1 Chi-He (5th Regiment)",
+            "long": "Chi-He (5th Regiment)",
+            "short": "Medium tank"
+        },
         "jp_type_1_chi_he": {
             "full": "Type 1 Chi-He",
             "long": "Chi-He",
@@ -9606,6 +9856,11 @@
             "long": "Type 60",
             "short": "SPG"
         },
+        "jp_navy_120mm_spg": {
+            "full": "Type 97 Chi-Ha Long Gun",
+            "long": "Chi-Ha LG",
+            "short": "SPG"
+        },
         "jp_type_4_ho_ro": {
             "full": "Type 4 Ho-Ro",
             "long": "Ho-Ro",
@@ -9662,7 +9917,7 @@
             "short": "Infantry tank"
         },
         "uk_a_33_excelsior": {
-            "full": "A.33 Heavy Assault Tank \"Excelsior\"",
+            "full": "Tank, Heavy Assault, Excelsior (A33)",
             "long": "A.33",
             "short": "Heavy tank"
         },
@@ -9720,6 +9975,11 @@
             "full": "Stormartillerivagn m/43 (1946)",
             "long": "Sav m/43 (1946)",
             "short": "SPG"
+        },
+        "sw_strv_104": {
+            "full": "Stridsvagn 104",
+            "long": "Strv 104",
+            "short": "Medium tank"
         },
         "sw_strv_101": {
             "full": "Stridsvagn 101",
@@ -9830,6 +10090,11 @@
             "full": "Luftvärnsrobotbandvagn 701",
             "long": "Lvrbv 701",
             "short": "SPAA"
+        },
+        "sw_ikv_73": {
+            "full": "Infanterikanonvagn 73",
+            "long": "Ikv 73",
+            "short": "SPG"
         },
         "sw_ikv_72": {
             "full": "Infanterikanonvagn 72",
@@ -9986,6 +10251,21 @@
             "long": "GAZ-AAA",
             "short": "Vehicle"
         },
+        "us_apc_m113": {
+            "full": "M113",
+            "long": "M113",
+            "short": "APC"
+        },
+        "germ_apc_m113": {
+            "full": "M113",
+            "long": "M113",
+            "short": "APC"
+        },
+        "ussr_apc_bmp_1": {
+            "full": "BMP-1",
+            "long": "BMP-1",
+            "short": "IFV"
+        },
         "germ_at_gun_pak36": {
             "full": "3.7 cm anti-tank gun mod. 1935/1936 (PaK)",
             "long": "3.7 cm AT PaK",
@@ -10016,9 +10296,19 @@
             "long": "57 mm AT M1",
             "short": "Anti-tank gun"
         },
+        "us_at_m40": {
+            "full": "106 mm anti-tank gun М40",
+            "long": "106 mm AT М40",
+            "short": "Anti-tank gun"
+        },
         "ussr_at_gun_53k": {
             "full": "45 mm anti-tank gun mod. 1937 (53-K)",
             "long": "45 mm AT 53-K",
+            "short": "Anti-tank gun"
+        },
+        "ussr_at_spg_9": {
+            "full": "73 mm anti-tank gun SPG-9",
+            "long": "73 mm AT SPG-9",
             "short": "Anti-tank gun"
         },
         "jp_at_37mm_type_1": {
@@ -10067,6 +10357,11 @@
             "short": "Destroyer"
         },
         "ussr_pr_206": {
+            "full": "Project 206 \"Shershen\"",
+            "long": "Pr. 206",
+            "short": "Motor Torpedo Boat"
+        },
+        "ussr_pr_206_race": {
             "full": "Project 206 \"Shershen\"",
             "long": "Pr. 206",
             "short": "Motor Torpedo Boat"
@@ -10821,6 +11116,11 @@
             "long": "Köln F220",
             "short": "Frigate"
         },
+        "germ_frigate_koln_lubeck": {
+            "full": "Köln-class, Lübeck F224 (1980)",
+            "long": "Lübeck F224",
+            "short": "Frigate"
+        },
         "uk_cruiser_london": {
             "full": "County-class, HMS London (69), 1945",
             "long": "London",
@@ -10922,7 +11222,7 @@
             "short": "Light cruiser"
         },
         "it_cruiser_trento": {
-            "full": "Incrociatori pesanti, Trento type",
+            "full": "Trento-class, Trento type",
             "long": "Trento",
             "short": "Heavy Cruiser"
         },
@@ -10932,7 +11232,7 @@
             "short": "Missile boat"
         },
         "us_cruiser_cleveland_class_cleveland": {
-            "full": "Cleveland class, USSCleveland (CL-52)",
+            "full": "Cleveland class, USS Cleveland (CL-55)",
             "long": "Cleveland",
             "short": "Light Cruiser"
         },
@@ -10975,6 +11275,71 @@
             "full": "Raimondo Montecuccoli, Raimondo Montecuccoli class",
             "long": "Raimondo Montecuccoli",
             "short": "Light cruiser"
+        },
+        "ussr_cruiser_maxim_gorky": {
+            "full": "Maxim Gorky, 1941",
+            "long": "Maxim Gorky",
+            "short": "Light Cruiser"
+        },
+        "structures/ship_target_mine_char": {
+            "full": "Target «Naval mine»",
+            "long": "Target «Naval mine»",
+            "short": "Target «Naval mine»"
+        },
+        "structures/ship_target_1_char": {
+            "full": "Target «Destroyer»",
+            "long": "Target «Destroyer»",
+            "short": "Target «Destroyer»"
+        },
+        "structures/ship_target_2_char": {
+            "full": "Target «Boat»",
+            "long": "Target «Boat»",
+            "short": "Target «Boat»"
+        },
+        "ussr_skr_pr50_jenot": {
+            "full": "SKR Pr.50 «Yenot»",
+            "long": "Pr.50",
+            "short": "Patrol ship"
+        },
+        "us_cruiser_northampton_class": {
+            "full": "Northampton-class, USS Northampton (CA-26), 1941",
+            "long": "Northampton",
+            "short": "Heavy cruiser"
+        },
+        "uk_corvette_peacock": {
+            "full": "HMS Peacock",
+            "long": "Peacock",
+            "short": "Corvette"
+        },
+        "jp_destroyer_chidori": {
+            "full": "Chidori (1945)",
+            "long": "Chidori",
+            "short": "Gunboat"
+        },
+        "it_mas_classe500_3_1944": {
+            "full": "Velocissimo Classe 500 3 serie, MAS 561",
+            "long": "MAS 561",
+            "short": "Motor Torpedo Boat"
+        },
+        "it_cruiser_zara_class": {
+            "full": "Zara-class, Zara type",
+            "long": "Zara",
+            "short": "Heavy Cruiser"
+        },
+        "it_destroyer_comandanti_medaglie_doro": {
+            "full": "Comandanti Medaglie d'Oro,1st series",
+            "long": "Comandanti Medaglie d'Oro",
+            "short": "Destroyer"
+        },
+        "jp_escort_akebono_class": {
+            "full": "Akebono-class",
+            "long": "Akebono",
+            "short": "Frigate"
+        },
+        "jp_destroyer_shimakaze": {
+            "full": "Shimakaze class, Shimakaze (1944)",
+            "long": "Shimakaze",
+            "short": "Destroyer"
         }
     }
 }
