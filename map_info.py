@@ -1,8 +1,11 @@
 import json
 import math
 import os
+import platform
 import urllib.request
 
+import simplejson
+import snoop
 import PIL
 import imagehash
 import loguru
@@ -13,151 +16,154 @@ from requests import get
 from requests.exceptions import ReadTimeout, ConnectTimeout
 from xmltodict import unparse
 
-from config import WebInterfaceEndpoints as WebAPI
+from cfg import API
+
+WebAPI = API()
 
 
 maps = {
-    '000000010383cfdf': 'arcade_norway_plain_map',
-    '000000187efefc7c': 'avn_africa_gulf_tankmap',
-    '000000c0f0ffffff': 'avg_africa_desert_tankmap',
-    '000000f0f0f8ffff': 'mozdok_map',
-    '000003e6618fdfcf': 'avg_normandy_map',
-    '00000c3c7de11cc2': 'caribbean_islands_map',
-    '0000183c3c1c0008': 'avn_coral_islands_map',
-    '000018dc3c3fff7b': 'air_afghan_map',
-    '000040646eff7f7f': 'avg_poland_map',
-    '00007e7e7e7e3c00': 'avg_lazzaro_italy_tankmap',
-    '0000c0c0b3fbff3e': 'hurtgen_map',
-    '000100010303c7dd': 'arcade_norway_green_map',
-    '00016000f3ffffb6': 'avg_berlin_tankmap',
-    '00040e1ef8f03000': 'avn_fiji_map',
-    '0004ec783c3f3db8': 'avn_north_sea_tankmap',
-    '002820e0e6cf9fff': 'avg_snow_alps_tankmap',
-    '0030787e3e3e5e00': 'air_race_phiphi_islands_map',
-    '003c3c3e1c0e0600': 'arcade_tabletop_mountain_map',
-    '003c3f3f1f3f3e00': 'arcade_africa_seashore_map',
-    '003cf9f3f0e2f22c': 'avg_karpaty_passage_tankmap',
-    '0080e0703f8f3fff': 'avg_karpaty_passage_map',
-    '00a076f0e2c03080': 'avn_fuego_islands_map',
-    '00c00cb88cbcfcff': 'korea_map',
-    '00c0f0f8dcf8f8f0': 'avg_kursk_tankmap',
-    '00d8dbf66e082606': 'avn_ireland_bay_map',
-    '00f8fefe3c3c1ce0': 'arcade_phiphi_crater_rocks_map',
-    '01119883183efffe': 'avg_snow_alps_map',
-    '011a3c7c7efc7c08': 'avg_vietnam_hills_tankmap',
-    '030f0e1c18182000': 'peleliu_map',
-    '030f3ffcfcf0c0e3': 'avg_ardennes_map',
-    '03377b7b83a7bf7f': 'avn_phang_nga_bay_islands_tankmap',
-    '043c1c3870306040': 'saipan_map',
-    '047c605e7777fcc0': 'arcade_phiphi_crater_map',
-    '063f3f7f1e1e0000': 'avn_africa_gulf_map',
-    '0707937f153ccc5d': 'kursk_map',
-    '070f2c393d010707': 'avn_ice_port_tankmap',
-    '0743181818e06230': 'iwo_jima_map',
-    '0781814169e7f0fb': 'khalkhin_gol_map',
-    '0787c7e3c3c0cbcf': 'avg_rheinland_map',
-    '080080000000b9ff': 'avn_blacksea_port_tankmap',
-    '080502071f1f0f8f': 'ruhr_map',
-    '080c1c7c70707000': 'guam_map',
-    '080c2700c0f0ff7f': 'guadalcanal_map',
-    '080e0606607fcf40': 'avn_north_sea_map',
-    '08187e7e7e7e1e02': 'avn_coral_islands_tankmap',
-    '083c1e7c7870f0c0': 'avg_fulda_tankmap',
-    '0c00476130fcfd0d': 'avg_japan_map',
-    '0c3efe78f87c1e0c': 'avg_alaska_town_tankmap',
-    '0cccfc7e7f7efc18': 'avg_rheinland_tankmap',
-    '0f6ffcf8fe781000': 'bulge_map',
-    '112b19c024ef6206': 'avg_alaska_town_map',
-    '14f4fcfcf8000001': 'britain_map',
-    '170f1f7bf3f3bbf9': 'avg_finland_map',
-    '181a72fcc5e1c103': 'avg_hurtgen_tankmap',
-    '182070381e1e0000': 'malta_map',
-    '183c3e3e3e1c0000': 'midway_map',
-    '1f1f7f7f3f070301': 'port_moresby_map',
-    '1fd3e0c8e8f4fbff': 'arcade_snow_rocks_map',
-    '2f07030080c1e3df': 'avg_korea_lake_tankmap',
-    '30fcc1e66e9fd8e0': 'arcade_mediterranean_map',
-    '33363f3f3f333923': 'norway_map',
-    '348283c39363fe3c': 'avg_hurtgen_map',
-    '39c1033f3f0cc6d1': 'avn_norway_islands_tankmap',
-    '3f0f1384d071383f': 'avg_sector_montmedy_map',
-    '3f807efcfefcf0f1': 'avg_stalingrad_factory_tankmap',
-    '3f9f47030363c7c4': 'arcade_alps_map',
-    '3fffdf3f77020001': 'avg_lazzaro_italy_map',
-    '4604c0f0e8687078': 'avn_arabian_north_coast_tankmap',
-    '4ccc1efcfcbcfc20': 'avg_training_ground_tankmap',
-    '5f0f0710188088ff': 'berlin_map',
-    '5f392104ce5e5f54': 'avn_phang_nga_bay_islands_map',
-    '6a681f9e1f0e463d': 'avn_alps_fjord_tankmap',
-    '7020667717979bc3': 'avg_egypt_sinai_map',
-    '70e4d0f008c0ec78': 'avn_arabian_north_coast_map',
-    '70f8f8fe6e6f0200': 'honolulu_map',
-    '7878faf6ffef80f0': 'avg_africa_desert_map',
-    '7bdb8430607d88c4': 'arcade_rice_terraces_map',
-    '7c3c1c0e2a0c1f1f': 'avg_eastern_europe_map',
-    '7c7eff1f1e1c0800': 'air_vietnam_map',
-    '7d0d0c31b3030301': 'avg_mozdok_tankmap',
-    '7efffffff7030100': 'avg_port_novorossiysk_map',
-    '7f3f3f0f0707030f': 'avn_ice_port_map',
-    '7fe7970303170707': 'avg_korea_lake_map',
-    '8000e0e0c10f0f0f': 'dover_strait_map',
-    '8080e0f4feffedff': 'avg_guadalcanal_tankmap',
-    '80c48080c3dfbfff': 'avg_ireland_tankmap',
-    '860f1f0f0f00201f': 'water_map',
-    '8f8f83c38181e0e0': 'arcade_canyon_snow_map',
-    '8fc68480e6b6acc7': 'avg_european_fortress_tankmap',
-    '90e0e082f2fcfcfc': 'korsun_map',
-    '9a9080fdee00183e': 'avn_ice_field_tankmap',
-    '9f3f5cd0e0b0121b': 'avg_american_valley_map',
-    'b070e0e0c0c1cf9f': 'avg_krymsk_tankmap',
-    'b8f8f0f0f030f8f8': 'avg_tunisia_desert_map',
-    'bf3f878786100091': 'avg_volokolamsk_map',
-    'c0c0e061ffff7f7f': 'avn_blacksea_port_map',
-    'c180183c3c180183': 'avn_fiji_tankmap',
-    'c19110161f1f9fbf': 'avg_fulda_map',
-    'c3433103a400836b': 'arcade_zhang_park_map',
-    'c3c3c3c3ffffffff': 'air_ladoga_map',
-    'c9c7e70b331f3834': 'avn_norway_islands_map',
-    'd000241c0087f7ff': 'avg_syria_map',
-    'd90a0000e0f8f0f0': 'zhengzhou_map',
-    'dfe0809061ffdfd0': 'avg_ardennes_tankmap',
-    'e0e0c0c0c0cfffff': 'avg_japan_tankmap',
-    'e0f7c4e4ed8210c0': 'avn_fuego_islands_tankmap',
-    'e7ef9fb6f0f0f0e0': 'spain_map',
-    'e8e020d8f880e07e': 'moscow_map',
-    'ef0717381c20f0f0': 'avn_ireland_bay_tankmap',
-    'f0e0c0c0c0c0e0f0': 'avg_karelia_forest_a_map',
-    'f0f0f0a2030f1f0f': 'avg_poland_tankmap',
-    'f0f83c3c190b1b1b': 'avn_ice_field_map',
-    'f381480786024c06': 'avg_european_fortress_map',
-    'f3f7ffc3c1e1c000': 'avg_abandoned_factory_tankmap',
-    'f7ef4f4de8f9fc3f': 'avg_volokolamsk_tankmap',
-    'f7fef9f8d8c08000': 'wake_island_map',
-    'f8f87f7f3f070300': 'krymsk_map',
-    'f8f8f03000000000': 'avn_mediterranean_port_tankmap',
-    'f8f8f8f0e0e0e0e0': 'stalingrad_w_map',
-    'f8f8f8f0f0f8fcfc': 'avg_egypt_sinai_tankmap',
-    'f8f8f8f8f0f0f0f0': 'avn_england_shore_map',
-    'faf260c1e3333120': 'avg_abandoned_factory_map',
-    'fc7e73f300070001': 'avg_eastern_europe_tankmap',
-    'fcbcfef8f87cfce0': 'avg_karelia_forest_a_tankmap',
-    'fcf0f0680cde8800': 'arcade_norway_fjords_map',
-    'fcf8f0e0fcfcfcfe': 'sicily_map',
-    'fcfcd8e46c0e0080': 'arcade_africa_canyon_map',
-    'fcfcfd9810befc0c': 'avg_american_valley_tankmap',
-    'fcfefdff7e380001': 'avg_syria_tankmap',
-    'fefcfcf8d0c00000': 'avg_vietnam_hills_map',
-    'fefefe00c0fefefe': 'avg_tunisia_desert_tankmap',
-    'ff0340ffffff2000': 'avg_normandy_tankmap',
-    'ff0f1f1f0f0f0a00': 'avg_sector_montmedy_tankmap',
-    'ff13010307030301': 'avn_alps_fjord_map',
-    'ffc0c0c08080383e': 'avn_england_shore_tankmap',
-    'ffc300000000e3ff': 'arcade_asia_4roads_map',
-    'fff3f8f0c0c0f0f8': 'avg_port_novorossiysk_tankmap',
-    'fffc20c0d0c080e0': 'arcade_ireland_map',
-    'fffe1808081f1f3f': 'avg_finland_tankmap',
-    'fffff9f8d8c0c000': 'wake_island_map',
-    'fffffcf8e0000000': 'avn_mediterranean_port_map'
+    '0x000000010383CFDF': 'arcade_norway_plain_map',
+    '0x000000187EFEFC7C': 'avn_africa_gulf_tankmap',
+    '0x000000C0F0FFFFFF': 'avg_africa_desert_tankmap',
+    '0x000000F0F0F8FFFF': 'mozdok_map',
+    '0x000003E6618FDFCF': 'avg_normandy_map',
+    '0x00000C3C7DE11CC2': 'caribbean_islands_map',
+    '0x0000183C3C1C0008': 'avn_coral_islands_map',
+    '0x000018DC3C3FFF7B': 'air_afghan_map',
+    '0x000040646EFF7F7F': 'avg_poland_map',
+    '0x00007E7E7E7E3C00': 'avg_lazzaro_italy_tankmap',
+    '0x0000C0C0B3FBFF3E': 'hurtgen_map',
+    '0x000100010303C7DD': 'arcade_norway_green_map',
+    '0x00016000F3FFFFB6': 'avg_berlin_tankmap',
+    '0x00040E1EF8F03000': 'avn_fiji_map',
+    '0x0004EC783C3F3DB8': 'avn_north_sea_tankmap',
+    '0x002820E0E6CF9FFF': 'avg_snow_alps_tankmap',
+    '0x0030787E3E3E5E00': 'air_race_phiphi_islands_map',
+    '0x003C3C3E1C0E0600': 'arcade_tabletop_mountain_map',
+    '0x003C3F3F1F3F3E00': 'arcade_africa_seashore_map',
+    '0x003CF9F3F0E2F22C': 'avg_karpaty_passage_tankmap',
+    '0x0080E0703F8F3FFF': 'avg_karpaty_passage_map',
+    '0x00A076F0E2C03080': 'avn_fuego_islands_map',
+    '0x00C00CB88CBCFCFF': 'korea_map',
+    '0x00C0F0F8DCF8F8F0': 'avg_kursk_tankmap',
+    '0x00D8DBF66E082606': 'avn_ireland_bay_map',
+    '0x00F8FEFE3C3C1CE0': 'arcade_phiphi_crater_rocks_map',
+    '0x01119883183EFFFE': 'avg_snow_alps_map',
+    '0x011A3C7C7EFC7C08': 'avg_vietnam_hills_tankmap',
+    '0x030F0E1C18182000': 'peleliu_map',
+    '0x030F3FFCFCF0C0E3': 'avg_ardennes_map',
+    '0x03377B7B83A7BF7F': 'avn_phang_nga_bay_islands_tankmap',
+    '0x043C1C3870306040': 'saipan_map',
+    '0x047C605E7777FCC0': 'arcade_phiphi_crater_map',
+    '0x063F3F7F1E1E0000': 'avn_africa_gulf_map',
+    '0x0707937F153CCC5D': 'kursk_map',
+    '0x070F2C393D010707': 'avn_ice_port_tankmap',
+    '0x0743181818E06230': 'iwo_jima_map',
+    '0x0781814169E7F0FB': 'khalkhin_gol_map',
+    '0x0787C7E3C3C0CBCF': 'avg_rheinland_map',
+    '0x080080000000B9FF': 'avn_blacksea_port_tankmap',
+    '0x080502071F1F0F8F': 'ruhr_map',
+    '0x080C1C7C70707000': 'guam_map',
+    '0x080C2700C0F0FF7F': 'guadalcanal_map',
+    '0x080E0606607FCF40': 'avn_north_sea_map',
+    '0x08187E7E7E7E1E02': 'avn_coral_islands_tankmap',
+    '0x083C1E7C7870F0C0': 'avg_fulda_tankmap',
+    '0x0C00476130FCFD0D': 'avg_japan_map',
+    '0x0C3EFE78F87C1E0C': 'avg_alaska_town_tankmap',
+    '0x0CCCFC7E7F7EFC18': 'avg_rheinland_tankmap',
+    '0x0F6FFCF8FE781000': 'bulge_map',
+    '0x112B19C024EF6206': 'avg_alaska_town_map',
+    '0x14F4FCFCF8000001': 'britain_map',
+    '0x170F1F7BF3F3BBF9': 'avg_finland_map',
+    '0x181A72FCC5E1C103': 'avg_hurtgen_tankmap',
+    '0x182070381E1E0000': 'malta_map',
+    '0x183C3E3E3E1C0000': 'midway_map',
+    '0x1F1F7F7F3F070301': 'port_moresby_map',
+    '0x1FD3E0C8E8F4FBFF': 'arcade_snow_rocks_map',
+    '0x2F07030080C1E3DF': 'avg_korea_lake_tankmap',
+    '0x30FCC1E66E9FD8E0': 'arcade_mediterranean_map',
+    '0x33363F3F3F333923': 'norway_map',
+    '0x348283C39363FE3C': 'avg_hurtgen_map',
+    '0x39C1033F3F0CC6D1': 'avn_norway_islands_tankmap',
+    '0x3F0F1384D071383F': 'avg_sector_montmedy_map',
+    '0x3F807EFCFEFCF0F1': 'avg_stalingrad_factory_tankmap',
+    '0x3F9F47030363C7C4': 'arcade_alps_map',
+    '0x3FFFDF3F77020001': 'avg_lazzaro_italy_map',
+    '0x4604C0F0E8687078': 'avn_arabian_north_coast_tankmap',
+    '0x4CCC1EFCFCBCFC20': 'avg_training_ground_tankmap',
+    '0x5F0F0710188088FF': 'berlin_map',
+    '0x5F392104CE5E5F54': 'avn_phang_nga_bay_islands_map',
+    '0x6A681F9E1F0E463D': 'avn_alps_fjord_tankmap',
+    '0x7020667717979BC3': 'avg_egypt_sinai_map',
+    '0x70E4D0F008C0EC78': 'avn_arabian_north_coast_map',
+    '0x70F8F8FE6E6F0200': 'honolulu_map',
+  #  0x'003078783C1C8C08': 'honolulu_map',
+    '0x7878FAF6FFEF80F0': 'avg_africa_desert_map',
+    '0x7BDB8430607D88C4': 'arcade_rice_terraces_map',
+    '0x7C3C1C0E2A0C1F1F': 'avg_eastern_europe_map',
+    '0x7C7EFF1F1E1C0800': 'air_vietnam_map',
+    '0x7D0D0C31B3030301': 'avg_mozdok_tankmap',
+    '0x7EFFFFFFF7030100': 'avg_port_novorossiysk_map',
+    '0x7F3F3F0F0707030F': 'avn_ice_port_map',
+    '0x7FE7970303170707': 'avg_korea_lake_map',
+    '0x8000E0E0C10F0F0F': 'dover_strait_map',
+    '0x8080E0F4FEFFEDFF': 'avg_guadalcanal_tankmap',
+    '0x80C48080C3DFBFFF': 'avg_ireland_tankmap',
+    '0x860F1F0F0F00201F': 'water_map',
+    '0x8F8F83C38181E0E0': 'arcade_canyon_snow_map',
+    '0x8FC68480E6B6ACC7': 'avg_european_fortress_tankmap',
+    '0x90E0E082F2FCFCFC': 'korsun_map',
+    '0x9A9080FDEE00183E': 'avn_ice_field_tankmap',
+    '0x9F3F5CD0E0B0121B': 'avg_american_valley_map',
+    '0xB070E0E0C0C1CF9F': 'avg_krymsk_tankmap',
+    '0xB8F8F0F0F030F8F8': 'avg_tunisia_desert_map',
+    '0xBF3F878786100091': 'avg_volokolamsk_map',
+    '0xC0C0E061FFFF7F7F': 'avn_blacksea_port_map',
+    '0xC180183C3C180183': 'avn_fiji_tankmap',
+    '0xC19110161F1F9FBF': 'avg_fulda_map',
+    '0xC3433103A400836B': 'arcade_zhang_park_map',
+    '0xC3C3C3C3FFFFFFFF': 'air_ladoga_map',
+    '0xC9C7E70B331F3834': 'avn_norway_islands_map',
+    '0xD000241C0087F7FF': 'avg_syria_map',
+    '0xD90A0000E0F8F0F0': 'zhengzhou_map',
+    '0xDFE0809061FFDFD0': 'avg_ardennes_tankmap',
+    '0xE0E0C0C0C0CFFFFF': 'avg_japan_tankmap',
+    '0xE0F7C4E4ED8210C0': 'avn_fuego_islands_tankmap',
+    '0xE7EF9FB6F0F0F0E0': 'spain_map',
+    '0xE8E020D8F880E07E': 'moscow_map',
+    '0xEF0717381C20F0F0': 'avn_ireland_bay_tankmap',
+    '0xF0E0C0C0C0C0E0F0': 'avg_karelia_forest_a_map',
+    '0xF0F0F0A2030F1F0F': 'avg_poland_tankmap',
+    '0xF0F83C3C190B1B1B': 'avn_ice_field_map',
+    '0xF381480786024C06': 'avg_european_fortress_map',
+    '0xF3F7FFC3C1E1C000': 'avg_abandoned_factory_tankmap',
+    '0xF7EF4F4DE8F9FC3F': 'avg_volokolamsk_tankmap',
+    '0xF7FEF9F8D8C08000': 'wake_island_map',
+    '0xF8F87F7F3F070300': 'krymsk_map',
+    '0xF8F8F03000000000': 'avn_mediterranean_port_tankmap',
+    '0xF8F8F8F0E0E0E0E0': 'stalingrad_w_map',
+    '0xF8F8F8F0F0F8FCFC': 'avg_egypt_sinai_tankmap',
+    '0xF8F8F8F8F0F0F0F0': 'avn_england_shore_map',
+    '0xFAF260C1E3333120': 'avg_abandoned_factory_map',
+    '0xFC7E73F300070001': 'avg_eastern_europe_tankmap',
+    '0xFCBCFEF8F87CFCE0': 'avg_karelia_forest_a_tankmap',
+    '0xFCF0F0680CDE8800': 'arcade_norway_fjords_map',
+    '0xFCF8F0E0FCFCFCFE': 'sicily_map',
+    '0xFCFCD8E46C0E0080': 'arcade_africa_canyon_map',
+    '0xFCFCFD9810BEFC0C': 'avg_american_valley_tankmap',
+    '0xFCFEFDFF7E380001': 'avg_syria_tankmap',
+    '0xFEFCFCF8D0C00000': 'avg_vietnam_hills_map',
+    '0xFEFEFE00C0FEFEFE': 'avg_tunisia_desert_tankmap',
+    '0xFF0340FFFFFF2000': 'avg_normandy_tankmap',
+    '0xFF0F1F1F0F0F0A00': 'avg_sector_montmedy_tankmap',
+    '0xFF13010307030301': 'avn_alps_fjord_map',
+    '0xFFC0C0C08080383E': 'avn_england_shore_tankmap',
+    '0xFFC300000000E3FF': 'arcade_asia_4roads_map',
+    '0xFFF3F8F0C0C0F0F8': 'avg_port_novorossiysk_tankmap',
+    '0xFFFC20C0D0C080E0': 'arcade_ireland_map',
+    '0xFFFE1808081F1F3F': 'avg_finland_tankmap',
+    '0xFFFFF9F8D8C0C000': 'wake_island_map',
+    '0xFFFFFCF8E0000000': 'avn_mediterranean_port_map'
 }
 
 
@@ -226,7 +232,7 @@ def latlon2meters(lat1, lon1, lat2, lon2):
     d = r * c
     return d * 1000
 
-
+# @snoop
 def main_def():
     while True:
         try:
@@ -238,24 +244,31 @@ def main_def():
             pass
         except (ReadTimeout, ConnectTimeout) as e:
             pass
+        except (simplejson.errors.JSONDecodeError) as e:
+            pass
 
     image = Image.open('map.jpg')
     image_draw = ImageDraw.Draw(image)
 
     map_max = inf_req['map_max']
     map_min = inf_req['map_min']
-    map_total = map_max[0] - map_min[0]
-    map_total_x = map_max[0] - map_min[0]
-    map_total_y = map_max[1] - map_min[1]
+    map_min_x, map_min_y = float(map_min[0]), float(map_min[1])
+    map_max_x, map_max_y = float(map_max[0]), float(map_max[1])
+    map_total = map_max_x - map_min_x
+    map_total_x = map_max_x - map_min_x
+    map_total_y = map_max_y - map_min_y
 
     grid_zero = inf_req['grid_zero']
     grid_step = inf_req['grid_steps']
 
-    step_qnty = map_total / grid_step[0]
-    step_size = image.width / step_qnty
-    step_offset = map_min[0] - grid_zero[0]
+    grid_zero_x, grid_zero_y = float(grid_zero[0]), float(grid_zero[1])
+    grid_step_x, magrid_step_= float(grid_step[0]), float(grid_step[1])
 
-    if step_size == map_max[0]:
+    step_qnty = map_total / grid_step_x
+    step_size = image.width / step_qnty
+    step_offset = map_min_y - grid_zero_x
+
+    if step_size == map_max_x:
         # TODO: document this, it was a hack fix for the odd maps that cause scale problems
         '''assuming duel map until found to be other'''
         step_offset = 0
@@ -378,7 +391,10 @@ def main_def():
     tex_insert['Resources']['CustomTextureList']['CustomTexture']['TopRight']['Latitude'] = tr_lat
 
     # TODO: check for existing .xml and append rather than overwrite
-    path = os.path.join(os.environ['APPDATA'], "Tacview\\Data\\Terrain\\Textures")
+    if platform.system() == "Windows":
+        path = os.path.join(os.environ['APPDATA'], "Tacview\\Data\\Terrain\\Textures")
+    elif platform.system() == "Linux":
+        path = "/home/divine/Programs/Tacview (beta)/Data/Terrain/Textures/"
 
     if not os.path.exists(path):
         os.makedirs(path)
@@ -398,13 +414,13 @@ def get_data():
     map_min_m = inf_req['map_min']
     grid_zero = inf_req['grid_zero']
     grid_step = inf_req['grid_steps']
-    map_total = map_max_m[0] - map_min_m[0]
-    step_quantity = map_total / grid_step[0]
-    map_total_x = map_max_m[0] - map_min_m[0]
-    map_total_y = map_max_m[1] - map_min_m[1]
+    map_total = float(map_max_m[0]) - float(map_min_m[0])
+    step_quantity = map_total / float(grid_step[0])
+    map_total_x = float(map_max_m[0]) - float(map_min_m[0])
+    map_total_y = float(map_max_m[1]) - float(map_min_m[1])
     map_generation = inf_req['map_generation']
     map_total_area = [map_total_x, map_total_y]
-    loguru.logger.debug(f"[M] GENERATION ##: {map_generation}")
+    loguru.logger.debug(f"[M] GENERATION No: {map_generation}")
     loguru.logger.debug(f"[M] LOCAL MAX (m): {map_max_m}")
     loguru.logger.debug(f"[M] LOCAL MIN (m): {map_min_m}")
     loguru.logger.debug(f"[M] MAP TOTAL (m): {map_total_area}")
@@ -413,7 +429,7 @@ def get_data():
 
     return map_total_area
 
-
+# @snoop
 def get_info(show=False):
     """
         given: when in active battle or test flight
@@ -427,35 +443,50 @@ def get_info(show=False):
         img.save('map.jpg')
     r.close()
 
-    # calculate the md5 hash and compare to a list of md5 hashes
+
     _dict = {}
-    _hash = str(imagehash.average_hash(Image.open("map.jpg")))
+    percent_match = None
+    # from browser map image, get md5 hash
+    _hash = str(imagehash.average_hash(Image.open("map.jpg"))).upper()
+    _hash = f'0x{_hash}'
     try:
+        if show:
+            loguru.logger.debug(f"[L] ACTUAL HASH  : 0x{_hash}")
+        # lookup hash value against key from maps lookup dict
         match = maps[_hash]
     except KeyError:
+        # if key not found
         for i in maps.keys():
+            # calculate numerical difference between actual hash and values from maps lookup dict
             _dict[i] = levenshtein(_hash, i, ratio_calc=True)
+        # iterating through each key (stored map hashes from maps lookup dict)
         for i in _dict.keys():
+            # match the calculated difference to the max (or highest) calculated difference
             if _dict[i] == max(_dict.values()):
                 match = maps[i]
+                percent_match = _dict[i]
     finally:
         match = match[:-4].replace('_', ' ').title()
         for map_type in ['Avg', 'Avn', 'Air']:
             if map_type in match:
                 match = match.replace(map_type, f"[{map_type.upper()}]")
         if show:
-            loguru.logger.debug(f"[L] REGION HASHED: 0x{_hash.upper()}")
-            loguru.logger.debug(f"[L] REGION BINARY: {match}")
+            loguru.logger.debug(f"[L] LOOKUP HASH  : 0x{_hash.upper()}")
+            if percent_match:
+                loguru.logger.debug(f"[L] LOOKUP MATCH%: {percent_match * 100}%")
+            else:
+                loguru.logger.debug(f"[L] LOOKUP MATCH : 100.00%")
+            loguru.logger.debug(f"[L] REGION IDENT : {match}")
         if os.path.exists('map.jpg'):
             os.remove('map.jpg')
         return match
 
 
-if __name__ == '__main__':
-    try:
-        main_def()
-        get_data()
-        get_info()
-    except urllib.error.URLError as e:
-        print(f'ERROR: {e}')
-        input('check aces.exe running and in match')
+# if __name__ == '__main__':
+#     try:
+#         main_def()
+#         get_data()
+#         get_info()
+#     except urllib.error.URLError as e:
+#         print(f'ERROR: {e}')
+#         input('check aces.exe running and in match')
