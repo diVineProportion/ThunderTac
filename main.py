@@ -1,4 +1,4 @@
-import snoop
+# import snoop
 
 user_sesid = ''
 time_isset = ''
@@ -7,7 +7,7 @@ class State:
     class Recorder:
         active = ''
 
-@snoop()
+# @snoop()
 def main_fun():
     global user_sesid
     global time_isset

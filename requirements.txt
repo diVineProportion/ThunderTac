@@ -1,3 +1,4 @@
+wheel
 requests==2.25.1
 arrow==0.17.0
 cchardet==2.1.7
@@ -14,3 +15,4 @@ psutil==5.7.3
 simplejson==3.17.2
 snoop==0.2.5
 xmltodict==0.12.0
+pywin32 ;platform_system=='Windows'
