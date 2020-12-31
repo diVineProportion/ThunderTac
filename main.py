@@ -57,6 +57,7 @@ def main_fun():
     # ttac_rec = config1.cfg_gen['ttac_rec']
     # ttac_int = config1.cfg_gen['ttac_int']
     user_gid = config1.cfg_gen['user_gid']
+    war_lang = config1.cfg_gen['war_lang']
     # logger_l = config1.cfg_log['logger_l']
     # debug_on = config1.cfg_dbg['debug_on']
     ftp_send = config1.cfg_ftp['ftp_send']
@@ -216,16 +217,33 @@ def main_fun():
             pass
 
     def get_window_title():
+
+        war_lang_dict = {
+            "English": {
+                "load": "Loading",
+                "batt": "In battle",
+                "driv": "Test Drive",
+                "test": "Test Flight",
+                "wait": "Waiting for game"
+            },
+            "French": {
+                "load": "Téléchargement en cours",
+                "batt": "Dans la bataille",
+                "driv": "Test Drive",
+                "test": "Vol test",
+                "wait": "En attente du jeu"
+            }
+        }
+
         if platform.system() == "Windows":
             from win32gui import FindWindowEx
-            title_hang = "War Thunder"
-            title_load = "War Thunder - Loading"
-            title_batt = "War Thunder - In battle"
-            title_driv = "War Thunder - Test Drive"
-            title_test = "War Thunder - Test Flight"
-            title_wait = "War Thunder - Waiting for game"
-            title_dx32 = "War Thunder (DirectX 11, 32bit) - In battle"
-            list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test, title_dx32]
+            title_hang = f"War Thunder"
+            title_load = f"War Thunder - {war_lang_dict[war_lang]['load']}"
+            title_batt = f"War Thunder - {war_lang_dict[war_lang]['batt']}"
+            title_driv = f"War Thunder - {war_lang_dict[war_lang]['driv']}"
+            title_test = f"War Thunder - {war_lang_dict[war_lang]['test']}"
+            title_wait = f"War Thunder - {war_lang_dict[war_lang]['wait']}"
+            list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test]
             for window_title in list_window_titles:
                 window_handle = FindWindowEx(None, None, None, window_title)
                 if not (window_handle == 0):
@@ -235,12 +253,20 @@ def main_fun():
             try:
                 import ewmh
                 window_manager = ewmh.EWMH()
-                title_hang = b"War Thunder (Vulkan, 64bit)"
-                title_load = b"War Thunder (Vulkan, 64bit) - Loading"
-                title_batt = b"War Thunder (Vulkan, 64bit) - In battle"
-                title_driv = b"War Thunder (Vulkan, 64bit) - Test Drive"
-                title_test = b"War Thunder (Vulkan, 64bit) - Test Flight"
-                title_wait = b"War Thunder (Vulkan, 64bit) - Waiting for game"
+                if war_lang == "English":
+                    title_hang = b"War Thunder (Vulkan, 64bit)"
+                    title_load = b"War Thunder (Vulkan, 64bit) - Loading"
+                    title_batt = b"War Thunder (Vulkan, 64bit) - In battle"
+                    title_driv = b"War Thunder (Vulkan, 64bit) - Test Drive"
+                    title_test = b"War Thunder (Vulkan, 64bit) - Test Flight"
+                    title_wait = b"War Thunder (Vulkan, 64bit) - Waiting for game"
+                elif war_lang == "French":
+                    title_hang = b"War Thunder (Vulkan, 64bit)"
+                    title_load = b"War Thunder (Vulkan, 64bit) - Téléchargement en cours"
+                    title_batt = b"War Thunder (Vulkan, 64bit) - Dans la bataille"
+                    title_driv = b"War Thunder (Vulkan, 64bit) - Test Drive"
+                    title_test = b"War Thunder (Vulkan, 64bit) - Vol test"
+                    title_wait = b"War Thunder (Vulkan, 64bit) - En attente du jeu"
                 list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test]
                 client_list = window_manager.getClientList()
                 for window in client_list:

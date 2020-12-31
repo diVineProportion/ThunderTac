@@ -66,9 +66,10 @@ class CFG:
 
         if self.game_install_path is not None:
             self.i18n = self.aces_language().replace('"', '')
-            if self.i18n != 'English\n':
-                print(f'YOUR GAME CLIENT LANGUAGE {self.i18n} HAS NOT BEEN IMPLEMENTED. CONTACT DEVELOPER')
-                print(f'SWITCHING YOUR GAME CLIENT TO ENGLISH FROM THE LAUNCHER WILL WORK FOR NOW')
+            if self.i18n[:-1] != 'English23':
+                print(f'YOUR GAME CLIENT IS USING THE {self.i18n[:-1].upper()} LANGUAGE. '
+                      f'THIS HAS NOT BEEN IMPLEMENTED. CONTACT THE DEVELOPER FOR ADDITIONAL LANGUAGE SUPPORT. \n'
+                      f'SWITCHING YOUR GAME CLIENT TO ENGLISH (IN THE LAUNCHER) WILL WORK FOR NOW')
 
         # create thundertac.ini if not exist
         if not self.tacx_settings_file.exists():
@@ -110,7 +111,7 @@ class CFG:
         self.cp['general']['ttac_rec'] = "ttac.rec"
         self.cp['general']['ttac_int'] = "0.02"
         self.cp['general']['user_gid'] = user_gid
-        self.cp['general']['war_lang'] = self.i18n
+        self.cp['general']['war_lang'] = self.i18n[:-1]
         self.cp['loguru']['logger_l'] = "DEBUG"
         self.cp['debug']['debug_on'] = "True"
         self.cp['ftpcred']['ftp_send'] = "False"
