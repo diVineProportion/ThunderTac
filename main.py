@@ -267,6 +267,11 @@ def main_fun():
                     title_driv = bytes("War Thunder (Vulkan, 64bit) - Test Drive", "utf-8")
                     title_test = bytes("War Thunder (Vulkan, 64bit) - Vol test", "utf-8")
                     title_wait = bytes("War Thunder (Vulkan, 64bit) - En attente du jeu", "utf-8")
+                    # b'War Thunder (OpenGL3, 64bit)'
+                    # b'War Thunder (OpenGL3, 64bit) - Vol test'(Test Flight)
+                    # b'War Thunder (OpenGL3, 64bit) - T\xc3\xa9l\xc3\xa9chargement en cours'(Loading)
+                    # b'War Thunder (OpenGL3, 64bit) - Dans la bataille'(In Battle)
+                    # b'War Thunder (OpenGL3, 64bit) - Essai du v\xc3\xa9hicule'(Test Drive)
                 list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test]
                 client_list = window_manager.getClientList()
                 for window in client_list:
@@ -475,14 +480,14 @@ def main_fun():
                 TITLE_DRIV = "War Thunder - Test Drive"
                 TITLE_TEST = "War Thunder - Test Flight"
                 TITLE_WAIT = "War Thunder - Waiting for game"
-                TITLE_DX32 = "War Thunder (DirectX 11, 32bit) - In battle"
             elif platform.system() == "Linux":
+                # TODO: add language split like line 264
                 TITLE_HANG = "War Thunder (Vulkan, 64bit)"
-                TITLE_LOAD = "War Thunder (Vulkan, 64bit) - Loading"
-                TITLE_BATT = "War Thunder (Vulkan, 64bit) - In battle"
+                TITLE_LOAD = "War Thunder (Vulkan, 64bit) - Téléchargement en cours"
+                TITLE_BATT = "War Thunder (Vulkan, 64bit) - Dans la bataille"
                 TITLE_DRIV = "War Thunder (Vulkan, 64bit) - Test Drive"
-                TITLE_TEST = "War Thunder (Vulkan, 64bit) - Test Flight"
-                TITLE_WAIT = "War Thunder (Vulkan, 64bit) - Waiting for game"
+                TITLE_TEST = "War Thunder (Vulkan, 64bit) - Vol test"
+                TITLE_WAIT = "War Thunder (Vulkan, 64bit) - En attente du jeu"
             # PLACEHOLDER = "War Thunder OpenGL"
             # PLACEHOLDER = "War Thunder D3DX9"
 
