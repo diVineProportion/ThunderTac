@@ -29,12 +29,13 @@ class CFG:
         self.cfg_dir = None
         self.cfg_cfg = None
 
+        self.clog_files = None
+
         self.game_version = None
         self.game_install_path = None
         self.game_settings_path = None
         self.game_settings_file = None
         self.tacx_settings_file = None
-
 
         self.players_sys = platform.system()
         self.players_uid = getpass.getuser()
@@ -144,7 +145,6 @@ class CFG:
 
     def get_war_path(self):
 
-
         try:
             self.game_install_path = pathlib.Path(self.cfg_dir['war_path'])
             self.game_settings_file = self.game_install_path.joinpath('config.blk')
@@ -178,9 +178,9 @@ class CFG:
 
     def get_user_alias(self):
 
-        def unxor(data):
+        def un_xor(data):
 
-            XOR_KEY = bytearray(b"\x82\x87\x97\x40\x8D\x8B\x46\x0B\xBB\x73\x94\x03\xE5\xB3\x83\x53"
+            xor_key = bytearray(b"\x82\x87\x97\x40\x8D\x8B\x46\x0B\xBB\x73\x94\x03\xE5\xB3\x83\x53"
                                 b"\x69\x6B\x83\xDA\x95\xAF\x4A\x23\x87\xE5\x97\xAC\x24\x58\xAF\x36"
                                 b"\x4E\xE1\x5A\xF9\xF1\x01\x4B\xB1\xAD\xB6\x4C\x4C\xFA\x74\x28\x69"
                                 b"\xC2\x8B\x11\x17\xD5\xB6\x47\xCE\xB3\xB7\xCD\x55\xFE\xF9\xC1\x24"
@@ -190,21 +190,21 @@ class CFG:
                                 b"\x53\x00\x3C\xA6\xB8\x22\x41\x32\xB1\xBD\xF5\x28\x50\xE0\x72\xAE")
 
             d_data = bytearray(len(data))
-            key_length = len(XOR_KEY)
+            key_length = len(xor_key)
             for i, c in enumerate(data):
-                d_data[i] = c ^ XOR_KEY[(i % key_length)]
+                d_data[i] = c ^ xor_key[(i % key_length)]
                 # sys.stdout.write(chr(d_data[i]))
                 # print(chr(c))
                 # time.sleep(0.001)
             return d_data
 
-        last_clog_fileis = max((self.clog_files), key=os.path.getctime)
+        last_clog_fileis = max(self.clog_files, key=os.path.getctime)
 
         with open(last_clog_fileis, 'rb') as f:
             xor_ed = f.read()
 
         xor_ed_byte_array = bytearray(xor_ed)
-        un_xor_ed = unxor(xor_ed_byte_array)
+        un_xor_ed = un_xor(xor_ed_byte_array)
 
         result = None
         if self.players_sys == "Darwin":
@@ -217,7 +217,7 @@ class CFG:
             result = 'ANSI'
         try:
             text_curr = bytes(un_xor_ed).decode(result)
-            xxx = re.search(r"(\w+)\[(\d+)\] successfully passed yuplay authorization", text_curr, re.M)
+            xxx = re.search(r"(\w+)\[(\d+)] successfully passed yuplay authorization", text_curr, re.M)
             if xxx:
                 print(xxx.groups())
                 user_alias, user_gj_id = xxx.group(1), xxx.group(2)

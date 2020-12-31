@@ -1,19 +1,22 @@
 
 user_sesid = ''
+map_area = None
+mission_category = None
+
 
 def main_fun():
     global user_sesid
+    global map_area
+    global mission_category
 
     # built in imports
     import collections
     import configparser
     import ftplib
     import glob
-    import inspect
     import math
     import os
     import pathlib
-    import pprint
     import random
     import re
     import sys
@@ -33,7 +36,6 @@ def main_fun():
     import simplejson as json
 
     # loguru.logger.add("file_{time}.log")
-    tracker = loguru.logger.level("TRACK", no=38, color="<red>")
 
     # fmt = "{time} | {level: <8} | {name: ^15} | {function: ^15} | {line: >3} | {message}"
     # loguru.logger.add(sys.stdout, format=fmt)
@@ -43,7 +45,7 @@ def main_fun():
 
     import map_info
 
-    windows = linux = darwin = False
+    # windows = linux = darwin = False
 
     import cfg
     config1 = cfg.CFG()
@@ -51,24 +53,24 @@ def main_fun():
     net_host = config1.cfg_net['net_host']
     net_port = config1.cfg_net['net_port']
     ttac_usr = config1.cfg_gen['ttac_usr']
-    ttac_mas = config1.cfg_gen['ttac_mas']
-    ttac_rec = config1.cfg_gen['ttac_rec']
-    ttac_int = config1.cfg_gen['ttac_int']
+    # ttac_mas = config1.cfg_gen['ttac_mas']
+    # ttac_rec = config1.cfg_gen['ttac_rec']
+    # ttac_int = config1.cfg_gen['ttac_int']
     user_gid = config1.cfg_gen['user_gid']
-    logger_l = config1.cfg_log['logger_l']
-    debug_on = config1.cfg_dbg['debug_on']
+    # logger_l = config1.cfg_log['logger_l']
+    # debug_on = config1.cfg_dbg['debug_on']
     ftp_send = config1.cfg_ftp['ftp_send']
     ftp_addr = config1.cfg_ftp['ftp_addr']
     ftp_user = config1.cfg_ftp['ftp_user']
     ftp_pass = config1.cfg_ftp['ftp_pass']
-    init_run = config1.cfg_cfg['init_run']
+    # init_run = config1.cfg_cfg['init_run']
     war_path = config1.cfg_dir['war_path']
     cfg_root = config1.cfg_dir['cfg_root']
 
     cp = configparser.ConfigParser()
     cp.read(config1.tacx_settings_file)
-    init_run = cp['configinit'].getboolean('init_run')
-    debug_on = cp['debug'].getboolean('debug_on')
+    # init_run = cp['configinit'].getboolean('init_run')
+    # debug_on = cp['debug'].getboolean('debug_on')
 
     # loguru.logger.remove()
     # loguru.logger.add(sys.stderr, level=logger_l)
@@ -79,27 +81,25 @@ def main_fun():
     filename = ""
     users_team = "0"
     time_rec_start = None
-    rec_start_mode_gamechat = True
-    map_objects = None
-    # TODO: write function to automatically handle this; start false, set true individually, then reset at appropriate time.
+    # rec_start_mode_gamechat = True
+    # map_objects = None
+    # TODO: write function to automatically handle this;
+    #  start false, set true individually, then reset at appropriate time.
     player_fetch_fail = None
-    x = y = z = r = p = h = None
+    x = y = z = r = p = None
     ias = player = latitude = longitude = None
     unit = s_throttle1 = tas = fuel_kg = None
     m = aoa = fuel_vol = gear = flaps = None
-    stick_ailerons = stick_elevator = None
-    ind = sta = None
+    # stick_ailerons = stick_elevator = None
+    # ind = sta = None
 
-
-    yet_done_ships = False
-    ships_dict = {}
-
-
+    # yet_done_ships = False
+    # ships_dict = {}
 
     # __import__('ipdb').set_trace(context=9)
     # ipdb.set_trace(context=21)
 
-    re_get_sesid = re.compile(r'[\d]+\.[\d]+ \[D\]  '
+    re_get_sesid = re.compile(r'[\d]+\.[\d]+ \[D] {2}'
                               r'AcesMpContext: '
                               r'onJoinMatch : '
                               r'sessionId:([a-f0-9]+)', re.I | re.M)
@@ -159,6 +159,7 @@ def main_fun():
         while True:
             _ = platform.system()
             try:
+                path_user_cfg = None
                 if _ == "Darwin":
                     path_user_cfg = 'My Games/WarThunder'
                 elif _ == "Linux":
@@ -174,7 +175,6 @@ def main_fun():
 
             except ValueError:
                 pass
-
 
     def get_utc_offset():
         """get difference between players local machine and NTP time server; use to sync players"""
@@ -212,7 +212,7 @@ def main_fun():
         except requests.exceptions.ReadTimeout:
             pass
         # NOTE: this is triggered when you leave a match
-        except simplejson.errors.JSONDecodeError as e:
+        except simplejson.errors.JSONDecodeError:
             pass
 
     def get_window_title():
@@ -251,7 +251,7 @@ def main_fun():
                 print(err_ewmh)
 
     def hdg(dx, dy):
-        """Fallback in case compass is missing from indicators pannel"""
+        """Fallback in case compass is missing from indicators panel"""
         dx *= longitude
         dy *= latitude
         return int(180 - (180 / math.pi) * math.atan2(dx, dy))
@@ -263,7 +263,7 @@ def main_fun():
                          f"Session ID: {session_id}" \
                          f"\n"
 
-        run_date, run_time = (str(arrow.now())[:-13]).replace(":", ".").split("T")
+        # run_date, run_time = (str(arrow.now())[:-13]).replace(":", ".").split("T")
 
         acmi_header = (
             f"FileType={'text/acmi/tacview'}\n"
@@ -291,25 +291,25 @@ def main_fun():
         random_object_id = random.randint(0, int(max_object_id))
         return hex(random_object_id)[2:]
 
-    def get_game_chat(id_msg=0):
-        url_game_chat = f"{WebAPI.CHAT}?lastId={id_msg}"
-        url_game_chat = url_game_chat.format(id_msg)
-        req_game_chat = requests.get(url_game_chat, timeout=0.02)
-        return req_game_chat.json()
-
-    def get_hud_msg(last_event=0, last_damage=0):
-        try:
-            hud_msg_request = f"{WebAPI.HMSG}?lastEvt={last_event}&lastDmg={last_damage}"
-            hud_msg_response = requests.get(hud_msg_request, timeout=0.02).json()
-            return hud_msg_response
-        except (IndexError, requests.exceptions.ReadTimeout) as err_get_hud_msg:
-            loguru.logger.debug(err_get_hud_msg)
+    # def get_game_chat(id_msg=0):
+    #     url_game_chat = f"{WebAPI.CHAT}?lastId={id_msg}"
+    #     url_game_chat = url_game_chat.format(id_msg)
+    #     req_game_chat = requests.get(url_game_chat, timeout=0.02)
+    #     return req_game_chat.json()
+    #
+    # def get_hud_msg(last_event=0, last_damage=0):
+    #     try:
+    #         hud_msg_request = f"{WebAPI.HMSG}?lastEvt={last_event}&lastDmg={last_damage}"
+    #         hud_msg_response = requests.get(hud_msg_request, timeout=0.02).json()
+    #         return hud_msg_response
+    #     except (IndexError, requests.exceptions.ReadTimeout) as err_get_hud_msg:
+    #         loguru.logger.debug(err_get_hud_msg)
 
     def get_unit():
         wt_units_lookup = None
         try:
-            with open('wtunits.json', 'r', encoding='utf-8') as f:
-                wt_units_lookup = json.loads(f.read())
+            with open('wtunits.json', 'r', encoding='utf-8') as fo:
+                wt_units_lookup = json.loads(fo.read())
         except FileNotFoundError:
             wt_units_host = 'https://raw.githubusercontent.com/diVineProportion/ThunderTac/ThunderTacX/wtunits.json'
             wt_units_data = requests.get(wt_units_host).json()
@@ -357,7 +357,7 @@ def main_fun():
         State.Recorder.header_placed = False
         acmi2zip()
         # acmi2ftp()
-        print('SIGINT or CTRL-C detected. Exiting gracefully')
+        print(f'SIGINT {signal_received} from frame {frame} (or CTRL-C) detected. Exiting gracefully')
         sys.exit(0)
 
     def area_init():
@@ -379,10 +379,10 @@ def main_fun():
                 zipfile.ZIP_DEFLATED: 'deflated',
                 zipfile.ZIP_STORED: 'stored',
             }
-            with zipfile.ZipFile(f'{filename}.zip', mode='w') as f:
+            with zipfile.ZipFile(f'{filename}.zip', mode='w') as fo:
                 mode_name = modes[compression]
                 loguru.logger.debug(f'Adding "{filename}" to "{filename}.zip" using mode "{mode_name}"')
-                f.write(f'{filename}', compress_type=compression)
+                fo.write(f'{filename}', compress_type=compression)
 
     def acmi2ftp():
         pathlib_file_object = pathlib.Path(filename)
@@ -390,7 +390,7 @@ def main_fun():
             filename_parts = pathlib_file_object.parts
             if ftp_send:
                 ftp = ftplib.FTP(ftp_addr, ftp_user, ftp_pass)
-
+                file = None
                 try:
                     file = open(f'{filename}.zip', 'rb')
                 except FileNotFoundError as err_acmi_ftp_out_file_not_found:
@@ -486,9 +486,9 @@ def main_fun():
         CHAT = f"{BASE}/gamechat"
         HMSG = f"{BASE}/hudmsg"
 
-    last_id_msg = 0
-    last_id_evt = 0
-    last_id_dmg = 0
+    # last_id_msg = 0
+    # last_id_evt = 0
+    # last_id_dmg = 0
 
     unit_lookup = get_unit()
     ntp = ntplib.NTPClient()
@@ -506,19 +506,18 @@ def main_fun():
     }
 
     def mqtt_con(client, userdata, flags, rc):
-        loguru.logger.debug(f"[Q] CONNECTED: Connected with result code {str(rc)}")
+        loguru.logger.debug(f"[Q] CONNECTED: {client} ({userdata}) connected; result code:{str(rc)}, flags:{flags}")
 
     def on_message(client, userdata, msg):
-        print("{}| {}".format(msg.topic, msg.payload.decode()))
+        print(f"{client}, {userdata} {msg.topic}| {msg.payload.decode()}")
 
     def on_subscribe(client, userdata, mid, granted_qos, properties=None):
-        print(mid)
+        print(client, userdata, mid, granted_qos, properties)
 
-    client = mqtt.Client()
-    client.on_connect = mqtt_con
-    client.on_message = on_message
-    client.on_subscribe = on_subscribe
-
+    mqtt_client = mqtt.Client()
+    mqtt_client.on_connect = mqtt_con
+    mqtt_client.on_message = on_message
+    mqtt_client.on_subscribe = on_subscribe
 
     while True:
 
@@ -544,9 +543,9 @@ def main_fun():
         # PROGRAM STATE: TEST FLIGHT
         elif curr_game_state == State.GameState.TITLE_TEST:
             mission_category = 'Test Flight'
+
             # CHECK: LOCATION DATA
             if not State.Map.information:
-
                 latitude, longitude, map_area = area_init()
                 if (latitude and longitude) is not None:
                     State.Map.information = True
@@ -562,6 +561,8 @@ def main_fun():
             # CHECK: LOCATION DATA
             if not State.Map.information:
                 latitude, longitude, map_area = area_init()
+                if not map_area:
+                    map_area = ''
                 State.Map.information = True
 
                 if (latitude and longitude) is not None:
@@ -592,12 +593,12 @@ def main_fun():
                     user_sesid = get_user_session_id(split_lines, _dict_sesid)[-1]
                     users_team = get_users_team(split_lines, _list_teams, ttac_usr)[-1]
 
-                    client.connect("tacserv.tk", 1883, 60, )
-                    client.loop_start()
+                    mqtt_client.connect("tacserv.tk", 1883, 60, )
+                    mqtt_client.loop_start()
 
                     # client.subscribe(f"TTAC/{user_sesid}/TIME_START")
-                    client.publish(f'TTAC/{user_sesid}/players/{user_gid}',
-                                   f"{ttac_usr} is fighting for team {users_team}.", retain=True)
+                    mqtt_client.publish(f'TTAC/{user_sesid}/players/{user_gid}',
+                                        f"{ttac_usr} is fighting for team {users_team}.", retain=True)
 
             if State.Recorder.start_recording:
                 if State.Map.information:
@@ -607,27 +608,8 @@ def main_fun():
                     State.Recorder.sortie_header = False
                     State.Recorder.active = True
 
-                    # try:
-                    #     gamechat_req = gamechat()
-                    #     list_msglog = gamechat_req
-                    #     if list_msglog:
-                    #         last_msg = list_msglog[-1]["msg"]
-                    #         last_mode = list_msglog[-1]["mode"]
-                    #         last_sender = list_msglog[-1]["sender"]
-                    #         if last_msg == ttac_rec:
-                    #             if last_sender == ttac_mas:
-                    #                 State.Messages.trigger_chat = True
-                    #                 loguru.logger.debug(f"[T] START TRIGGER: {ttac_mas} has started the recording")
-                    #                 time_rec_start = time.time()
-                    #                 loguru.logger.info("[R] START TRIGGER: Recording telemetry..")
-                    #                 loguru.logger.debug(f"[R] RECORDER INIT: TIME: {str(time_rec_start)}")
-                    #                 State.Recorder.sortie_header = False
-                    #                 State.Recorder.active = True
-                    #                 if ttac_usr == ttac_mas:
-                    #                     client.publish(f'TTAC/{user_sesid}/TIME_START', f"{time_rec_start}", retain=True)
-                    #
-                    # except requests.exceptions.ReadTimeout as e:
-                    #     pass
+        else:
+            mission_category = None
 
         # RECORDING STATE: RECORDING
         while State.Recorder.active:
@@ -676,10 +658,10 @@ def main_fun():
 
             try:
                 player = [el for el in map_objects if el["icon"] == "Player"][0]
-            except TypeError as e:
+            except TypeError:
                 pass
 
-            except (IndexError, TypeError) as err:
+            except (IndexError, TypeError):
                 try:
                     player = [el for el in map_objects if el["icon"] == "Player"][0]
                     # if this succeeds, continue will execute
@@ -722,16 +704,12 @@ def main_fun():
             if not State.Client.player_obj and not player_fetch_fail:
                 State.Client.player_obj = set_user_object()
                 loguru.logger.debug(f"[P] PLAYER OBJECT: +0x{State.Client.player_obj.upper()}")
-                    # g.write(f"#{time_adjusted_tick}\n")
-                    # for idx, each_item in enumerate(
-                    #         [el for el in map_objects if el["icon"] != "Player" and el['type'] != 'airfield']):
-                    #     g.write(f"+1000{idx}\n")
             try:
                 x = player["x"] * latitude
                 y = player["y"] * longitude * -1
-            except NameError as e:
+            except NameError:
                 pass
-            except TypeError as e:
+            except TypeError:
                 pass
             try:
                 ind = get_web_reqs(WebAPI.INDI)
@@ -745,7 +723,7 @@ def main_fun():
                     ias = sta["IAS, km/h"] * convert_to_mps
                     tas = sta["TAS, km/h"] * convert_to_mps
                     fuel_kg = sta["Mfuel, kg"]
-                    fuel_vol = f = sta["Mfuel, kg"] / sta["Mfuel0, kg"]
+                    fuel_vol = sta["Mfuel, kg"] / sta["Mfuel0, kg"]
                     m = sta["M"]
                     try:
                         aoa = sta["AoA, deg"]
@@ -771,7 +749,7 @@ def main_fun():
                                 if temp_test == "playing":
                                     r = ind["aviahorizon_roll"] * -1
                                     p = ind["aviahorizon_pitch"] * -1
-                            except KeyError as err_plane_not_compatible:
+                            except KeyError:
                                 if gaijin_state_method() == "playing":
                                     # TODO: Include this in the play_once controller
                                     loguru.logger.error("[P] This plane is not supported")
@@ -786,8 +764,7 @@ def main_fun():
                                         loguru.logger.info("[P] UNIT RE-SPAWN: {}".format(unit))
                                     State.Recorder.discover_unit = True
                                     State.Recorder.once_per_spawn = False
-
-                        except Exception as err:
+                        except TypeError:
                             pass
                         try:
                             pedals = ind["pedals"]
@@ -814,19 +791,24 @@ def main_fun():
                             except KeyError:
                                 h = ind["compass1"]
 
+                        fname, lname, sname = None, None, None
                         if not State.Recorder.once_per_spawn:
                             fname, lname, sname = unit_lookup['units'][unit].values()
                             State.Recorder.once_per_spawn = True
 
+                        team_color = None
+                        team_coalition = None
                         if users_team == "0":
                             team_color = "Orange"
                             team_coalition = "Neutral"
                         elif users_team == "1":
                             team_color = "Blue"
-                            team_coalition = "Star (Allies)"
+                            # team_coalition = "Star (Allies)"
+                            team_coalition = "Team 1"
                         elif users_team == "2":
                             team_color = "Red"
-                            team_coalition = "Cross (Axis)"
+                            # team_coalition = "Cross (Axis)"
+                            team_coalition = "Team 2"
                         # TODO: doesn't work, causes wrong team
                         # else:
                         #     team_color = "Purple"
@@ -848,9 +830,9 @@ def main_fun():
                                 + f"FuelVolume={fuel_vol},"
                                 + f"LandingGear={gear},"
                                 + f"Flaps={flaps},"
-                            # + "PilotHeadRoll={},".format(PilotHeadRoll)
-                            # + "PilotHeadPitch={},".format(PilotHeadPitch)
-                            # + "PilotHeadYaw={},".format(PilotHeadYaw)
+                                # + "PilotHeadRoll={},".format(PilotHeadRoll)
+                                # + "PilotHeadPitch={},".format(PilotHeadPitch)
+                                # + "PilotHeadYaw={},".format(PilotHeadYaw)
                         )
                         # APPEND TO .ACMI ONLY ONCE PER SPAWN
                         sortie_subheader = (f"Slot={'0'}," +
@@ -867,7 +849,7 @@ def main_fun():
                                             f"Color={team_color}," +
                                             f"Callsign={'None'}," +
                                             f"Coalition={team_coalition}"
-                        )
+                                            )
 
                         with open(filename, "a", encoding="utf8", newline="") as g:
                             if State.Client.player_obj:
@@ -877,34 +859,16 @@ def main_fun():
                                     State.Recorder.sortie_header = True
                                 else:
                                     g.write(sortie_telemetry + "\n")
-                                #
-                                # g.write(f"#{time_adjusted_tick}\n")
-                                # for idx, each_item in enumerate([el for el in map_objects]):
-                                #     if each_item['color'] == "#60FF37":
-                                #         team_color = "Green"
-                                #     elif each_item['color'] == "#1952FF":
-                                #         team_color = "Blue"
-                                #     elif each_item['color'] == "#f40C00":
-                                #         team_color = "Red"
-                                #     if each_item["icon"] != "Player":
-                                #         pass
-                                #     if each_item['icon'] == 'Ship':
-                                #         g.write(f"1000{idx},T={each_item['x'] * latitude}|{each_item['y'] * longitude * -1}|0,CallSign='thing_'{idx},Name=CG-47 Ticonderoga,Type=Sea+Watercraft+Warship,Color={team_color}\n")
-                                #     if each_item['type'] == "airfield":
-                                #         g.write(
-                                #             f"1000{idx},T={(each_item['sx'] + each_item['ex'])/2 * latitude}|{(each_item['sy'] + each_item['ey'])/2 * longitude * -1}|0,CallSign='thing_'{idx},Name=CVN-65 Enterprise,Type=Sea+Watercraft+Warship,Color={team_color}\n")
-                                #
 
-
-                except KeyError as err:
+                except KeyError:
                     pass
-                except TypeError as err:
+                except TypeError:
                     if State.Recorder.active:
                         pass
 
-            except json.decoder.JSONDecodeError as err:
+            except json.decoder.JSONDecodeError:
                 pass
-            except (TypeError, NameError) as e:
+            except (TypeError, NameError):
                 pass
                 # loguru.logger.exception(str(e))
             # except KeyError as e:
@@ -913,3 +877,25 @@ def main_fun():
 
 if __name__ == "__main__":
     main_fun()
+
+# try:
+#     gamechat_req = gamechat()
+#     list_msglog = gamechat_req
+#     if list_msglog:
+#         last_msg = list_msglog[-1]["msg"]
+#         last_mode = list_msglog[-1]["mode"]
+#         last_sender = list_msglog[-1]["sender"]
+#         if last_msg == ttac_rec:
+#             if last_sender == ttac_mas:
+#                 State.Messages.trigger_chat = True
+#                 loguru.logger.debug(f"[T] START TRIGGER: {ttac_mas} has started the recording")
+#                 time_rec_start = time.time()
+#                 loguru.logger.info("[R] START TRIGGER: Recording telemetry..")
+#                 loguru.logger.debug(f"[R] RECORDER INIT: TIME: {str(time_rec_start)}")
+#                 State.Recorder.sortie_header = False
+#                 State.Recorder.active = True
+#                 if ttac_usr == ttac_mas:
+#                     client.publish(f'TTAC/{user_sesid}/TIME_START', f"{time_rec_start}", retain=True)
+#
+# except requests.exceptions.ReadTimeout as e:
+#     pass
