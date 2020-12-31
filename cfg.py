@@ -66,10 +66,6 @@ class CFG:
 
         if self.game_install_path is not None:
             self.i18n = self.aces_language().replace('"', '')
-            if self.i18n[:-1] != 'English23':
-                print(f'YOUR GAME CLIENT IS USING THE {self.i18n[:-1].upper()} LANGUAGE. '
-                      f'THIS HAS NOT BEEN IMPLEMENTED. CONTACT THE DEVELOPER FOR ADDITIONAL LANGUAGE SUPPORT. \n'
-                      f'SWITCHING YOUR GAME CLIENT TO ENGLISH (IN THE LAUNCHER) WILL WORK FOR NOW')
 
         # create thundertac.ini if not exist
         if not self.tacx_settings_file.exists():

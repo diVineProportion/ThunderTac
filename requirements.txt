@@ -16,5 +16,3 @@ snoop==0.2.5
 xmltodict==0.12.0
 pywin32 ;platform_system=='Windows'
 win32gui ;platform_system=='Windows'
-pathlib~=1.0.1
-future~=0.18.2

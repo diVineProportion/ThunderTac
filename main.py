@@ -261,12 +261,12 @@ def main_fun():
                     title_test = b"War Thunder (Vulkan, 64bit) - Test Flight"
                     title_wait = b"War Thunder (Vulkan, 64bit) - Waiting for game"
                 elif war_lang == "French":
-                    title_hang = b"War Thunder (Vulkan, 64bit)"
-                    title_load = b"War Thunder (Vulkan, 64bit) - Téléchargement en cours"
-                    title_batt = b"War Thunder (Vulkan, 64bit) - Dans la bataille"
-                    title_driv = b"War Thunder (Vulkan, 64bit) - Test Drive"
-                    title_test = b"War Thunder (Vulkan, 64bit) - Vol test"
-                    title_wait = b"War Thunder (Vulkan, 64bit) - En attente du jeu"
+                    title_hang = bytes("War Thunder (Vulkan, 64bit)", "utf-8")
+                    title_load = bytes("War Thunder (Vulkan, 64bit) - Téléchargement en cours", "utf-8")
+                    title_batt = bytes("War Thunder (Vulkan, 64bit) - Dans la bataille", "utf-8")
+                    title_driv = bytes("War Thunder (Vulkan, 64bit) - Test Drive", "utf-8")
+                    title_test = bytes("War Thunder (Vulkan, 64bit) - Vol test", "utf-8")
+                    title_wait = bytes("War Thunder (Vulkan, 64bit) - En attente du jeu", "utf-8")
                 list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test]
                 client_list = window_manager.getClientList()
                 for window in client_list:
