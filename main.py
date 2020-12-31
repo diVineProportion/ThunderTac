@@ -1,22 +1,15 @@
-# import snoop
 
 user_sesid = ''
-time_isset = ''
 
-class State:
-    class Recorder:
-        active = ''
-
-# @snoop()
 def main_fun():
     global user_sesid
-    global time_isset
 
-    ## built in imports
+    # built in imports
     import collections
     import configparser
     import ftplib
     import glob
+    import inspect
     import math
     import os
     import pathlib
@@ -29,47 +22,28 @@ def main_fun():
 
     from signal import signal, SIGINT
 
-    ## 3rd party imports
+    # 3rd party imports
     import arrow
     import loguru
     import ntplib
     import paho.mqtt.client as mqtt
     import platform
-    import psutil
     import requests
     import simplejson
     import simplejson as json
 
-    from mega import Mega
-    from requests.exceptions import RequestException
+    # loguru.logger.add("file_{time}.log")
+    tracker = loguru.logger.level("TRACK", no=38, color="<red>")
 
-    ## local imports
-    ##### import config
-    # import _update_
-    ##### import arguments
-    # import map_info
-    ##### import userinfo
+    # fmt = "{time} | {level: <8} | {name: ^15} | {function: ^15} | {line: >3} | {message}"
+    # loguru.logger.add(sys.stdout, format=fmt)
+
+    # from mega import Mega
+    # from requests.exceptions import RequestException
 
     import map_info
-    ##### from config import cfc_general
-    ##### from config import cfg_loguru
-    ##### from config import cfg_debug
-    ##### from config import cfg_ftpcred
-    ##### from config import cfg_configinit
-    ##### from config import WebInterfaceEndpoints as WebAPI
 
     windows = linux = darwin = False
-
-    ##### init_run = cfg_configinit()
-
-    ##### if init_run:
-    #####     import ascii_config
-
-    ##### ttac_usr, ttac_mas, ttac_rec, ttac_int = cfc_general()
-    ##### logger_l = cfg_loguru()
-    ##### # debug_on = cfg_debug()
-    ##### ftp_send, ftp_addr, ftp_user, ftp_pass, ftp_sess = cfg_ftpcred()
-    ##### debug_on = True
 
     import cfg
     config1 = cfg.CFG()
@@ -92,28 +66,35 @@ def main_fun():
     cfg_root = config1.cfg_dir['cfg_root']
 
     cp = configparser.ConfigParser()
-    cp.read(config1.config_path)
+    cp.read(config1.tacx_settings_file)
     init_run = cp['configinit'].getboolean('init_run')
     debug_on = cp['debug'].getboolean('debug_on')
 
-    loguru.logger.remove()
-    loguru.logger.add(sys.stderr, level=logger_l)
+    # loguru.logger.remove()
+    # loguru.logger.add(sys.stderr, level=logger_l)
 
-    CONVTO_MPS = 0.277778
+    convert_to_mps = 0.277778
 
     # TODO: CLEAN THIS GARBAGE UP
     filename = ""
+    users_team = "0"
     time_rec_start = None
     rec_start_mode_gamechat = True
     map_objects = None
     # TODO: write function to automatically handle this; start false, set true individually, then reset at appropriate time.
     player_fetch_fail = None
     x = y = z = r = p = h = None
-    ias = player = lati_m = long_m = None
+    ias = player = latitude = longitude = None
     unit = s_throttle1 = tas = fuel_kg = None
     m = aoa = fuel_vol = gear = flaps = None
     stick_ailerons = stick_elevator = None
     ind = sta = None
+
+
+    yet_done_ships = False
+    ships_dict = {}
+
+
 
     # __import__('ipdb').set_trace(context=9)
     # ipdb.set_trace(context=21)
@@ -133,8 +114,7 @@ def main_fun():
                               r"mid=(?P<mid>[\d]+) "
                               r"uid=(?P<uid>[\d]+) "
                               r"u=(?P<u>0x[0-9a-f]+/[0-9A-F]+)", re.I | re.M)
-
-    XOR_KEY = bytearray(b"\x82\x87\x97\x40\x8D\x8B\x46\x0B\xBB\x73\x94\x03\xE5\xB3\x83\x53"
+    xor_key = bytearray(b"\x82\x87\x97\x40\x8D\x8B\x46\x0B\xBB\x73\x94\x03\xE5\xB3\x83\x53"
                         b"\x69\x6B\x83\xDA\x95\xAF\x4A\x23\x87\xE5\x97\xAC\x24\x58\xAF\x36"
                         b"\x4E\xE1\x5A\xF9\xF1\x01\x4B\xB1\xAD\xB6\x4C\x4C\xFA\x74\x28\x69"
                         b"\xC2\x8B\x11\x17\xD5\xB6\x47\xCE\xB3\xB7\xCD\x55\xFE\xF9\xC1\x24"
@@ -143,86 +123,28 @@ def main_fun():
                         b"\xC0\xAD\x9F\xE9\xBB\xFD\x4D\x06\x91\x50\x89\x6E\xE0\xE8\xEE\x99"
                         b"\x53\x00\x3C\xA6\xB8\x22\x41\x32\xB1\xBD\xF5\x28\x50\xE0\x72\xAE")
 
-    platform_data = {
-        'Darwin': {
-            'path': 'My Games/WarThunder',
-            'name': 'aces'
-        },
-        'Linux': {
-            'path': '.config/WarThunder',
-            'name': 'aces'
-        },
-        'Windows': {
-            'path': 'Documents/My Games/WarThunder',
-            'name': 'aces.exe'
-        }
-    }
-
-    def check_for_aces(procs):
-        if findProcIdByName(procs):
-            return True
-        else:
-            print('aces not running:', True)
-            return False
-
-    def checkIfProcessRunning(processName):
-        for proc in psutil.process_iter():
-            try:
-                if processName.lower() in proc.name().lower():
-                    return True
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                pass
-        return False
-
-    def findProcIdByName(processName):
-        listOfProcessObjects = []
-        for proc in psutil.process_iter():
-            try:
-                pinfo = proc.as_dict(attrs=['pid', 'name', 'create_time', 'exe'])
-                if processName.lower() in pinfo['name'].lower():
-                    listOfProcessObjects.append(pinfo)
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                pass
-        return listOfProcessObjects
-
-    def war_file_reader(war_file):
-        with open(war_file) as f:
-            if war_file.suffix == ".ver":
-                return f.read()
-            elif war_file.suffix == ".blk":
-                _ = [x for x in f.readlines() if x.startswith('language')][0]
-                return _.split(':t=')[1][1:-2]
-
-    def unxor(data):
+    def un_xor(data):
         d_data = bytearray(len(data))
-        key_length = len(XOR_KEY)
+        key_length = len(xor_key)
         for i, c in enumerate(data):
-            d_data[i] = c ^ XOR_KEY[(i % key_length)]
+            d_data[i] = c ^ xor_key[(i % key_length)]
         return d_data
 
-    def get_user_alias(text):
+    def get_user_session_id(text, _dict):
+        list_of_team_ids = []
+        list_of_session_ids = []
         for idx_line, text_line in enumerate(text):
-            xxx = re.search(r"[\d]+\.[\d]+\s\[D\]\s\s\$07\s(\w+)\[(\d+)\] successfully passed yuplay authorization",
-                            text_line, re.MULTILINE)
-            if xxx:
-                print(xxx.groups())
-                # return xxx.group(1), xxx.group(2)
-
-    def get_user_sesid(text, _dict):
-        list_tid = []
-        list_sid = []
-        for idx_line, text_line in enumerate(text):
-            x1 = re_get_sesid.search(text_line) or None
-            if x1:
+            regex_result = re_get_sesid.search(text_line) or None
+            if regex_result:
                 try:
                     time_elapsed = time.time() - time_start
-                    session_id = x1.group(1)
-                    list_sid.append(session_id)
-                    list_tid.append(time_elapsed)
-                    _dict[max(list_tid)] = {'session_id': list_sid[-1]}
+                    session_id = regex_result.group(1)
+                    list_of_session_ids.append(session_id)
+                    list_of_team_ids.append(time_elapsed)
+                    _dict[max(list_of_team_ids)] = {'session_id': list_of_session_ids[-1]}
                 except AttributeError:
                     pass
-        return list_sid  # _dict
+        return list_of_session_ids
 
     def get_users_team(text, _list_teams, alias):
         for idx_line, text_line in enumerate(text):
@@ -231,19 +153,6 @@ def main_fun():
                 if x2.group(2) == alias:
                     _list_teams.append(x2.group(5))
         return _list_teams
-
-    def init_temp_db():
-        tdb = configparser.ConfigParser()
-        tdb['MAP_INFO'] = {}
-        tdb['HEADER_INFO'] = {}
-        tdb['MAP_INFO']['map_lookup_result'] = ''
-        tdb['HEADER_INFO']['utc_start_date'] = ''
-        tdb['HEADER_INFO']['utc_start_time'] = ''
-        tdb['HEADER_INFO']['loc_start_date'] = ''
-        tdb['HEADER_INFO']['loc_start_time'] = ''
-        with open('temp.ini', 'w') as f:
-            tdb.write(f)
-        return tdb
 
     def gaijin_state_method():
         """last_state.blk is created and updated live but hasn't been implemented in thundertac"""
@@ -265,21 +174,7 @@ def main_fun():
 
             except ValueError:
                 pass
-        # while True:
-        #     try:
-        #         if platform.system() == "Windows":
-        #             from winreg import OpenKey, QueryValueEx, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
-        #             with open(os.environ['USERPROFILE'] + '\\Documents\\My Games\\WarThunder\\Saves\\last_state.blk',
-        #                       'r') as fr:
-        #                 prev_state, last_state = fr.readlines()
-        #             # prev_state = prev_state.split('"')[1]
-        #             last_state = last_state.split('"')[1]
-        #             return last_state
-        #         else:
-        #             pass
-        #             # TODO: linux and macos not yet implemented
-        #     except ValueError:
-        #         pass
+
 
     def get_utc_offset():
         """get difference between players local machine and NTP time server; use to sync players"""
@@ -302,17 +197,8 @@ def main_fun():
         acmi_folder_path = pathlib.Path(f'./ACMI/{user_sesid}')
         if not acmi_folder_path.is_dir():
             acmi_folder_path.mkdir(mode=0o777, parents=True, exist_ok=False)
-        # if not os.path.exists(f'.\\ACMI\\{user_sesid}'):
-        #     os.makedirs(f'.\\ACMI\\{user_sesid}')
         sdate, stime = (str(arrow.utcnow())[:-13]).replace(":", ".").split("T")
-        ldate, ltime = (str(arrow.now())[:-13]).replace(":", ".").split("T")
-        # temp_db.read('temp.ini')
-        # temp_db['HEADER_INFO']['utc_start_date'] = sdate
-        # temp_db['HEADER_INFO']['utc_start_time'] = stime
-        # temp_db['HEADER_INFO']['loc_start_date'] = ldate
-        # temp_db['HEADER_INFO']['loc_start_time'] = ltime
-        # with open('temp.ini', 'w') as f:
-        #     temp_db.write(f)
+        # ldate, ltime = (str(arrow.now())[:-13]).replace(":", ".").split("T")
         return f"ACMI/{user_sesid}/{sdate}_{stime}_{ttac_usr}.acmi"
 
     def get_web_reqs(req_type):
@@ -329,9 +215,9 @@ def main_fun():
         except simplejson.errors.JSONDecodeError as e:
             pass
 
-    def window_title():
+    def get_window_title():
         if platform.system() == "Windows":
-            import win32gui
+            from win32gui import FindWindowEx
             title_hang = "War Thunder"
             title_load = "War Thunder - Loading"
             title_batt = "War Thunder - In battle"
@@ -339,12 +225,10 @@ def main_fun():
             title_test = "War Thunder - Test Flight"
             title_wait = "War Thunder - Waiting for game"
             title_dx32 = "War Thunder (DirectX 11, 32bit) - In battle"
-            """Use win32api window handle titles to detect  war thunder state"""
-            # TODO: consider using xored clog file for more robust detection
-            list_title = [title_hang, title_wait, title_batt, title_load, title_driv, title_test, title_dx32]
-            for window_title in list_title:
-                whnd = win32gui.FindWindowEx(None, None, None, window_title)
-                if not (whnd == 0):
+            list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test, title_dx32]
+            for window_title in list_window_titles:
+                window_handle = FindWindowEx(None, None, None, window_title)
+                if not (window_handle == 0):
                     return window_title
 
         elif platform.system() == "Linux":
@@ -357,76 +241,69 @@ def main_fun():
                 title_driv = b"War Thunder (Vulkan, 64bit) - Test Drive"
                 title_test = b"War Thunder (Vulkan, 64bit) - Test Flight"
                 title_wait = b"War Thunder (Vulkan, 64bit) - Waiting for game"
-                list_title = [title_hang, title_wait, title_batt, title_load, title_driv, title_test]
-
+                list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test]
                 client_list = window_manager.getClientList()
                 for window in client_list:
-                    # print(window_manager.getWmName(window))
-                    if window_manager.getWmName(window) in list_title:
+                    if window_manager.getWmName(window) in list_window_titles:
                         window_title_from_window_id = window_manager.getWmName(window)
                         return window_title_from_window_id.decode('utf-8')
-            except Exception as e:
-                print(e)
-
+            except Exception as err_ewmh:
+                print(err_ewmh)
 
     def hdg(dx, dy):
         """Fallback in case compass is missing from indicators pannel"""
-        dx *= long_m * -1
-        dy *= lati_m * -1
+        dx *= longitude
+        dy *= latitude
         return int(180 - (180 / math.pi) * math.atan2(dx, dy))
 
-    def parachute_down(init_altitude):
-        """Control parachute decent rate"""
-        # avg ROF for parachte = 20 km/h
-        # 20km/1hr * 1hr/3600s * 1000m/1km = ~5.5m/1s
-        # 5.5 too slow
-        falltime = init_altitude * 2.5
-        return falltime
+    def insert_header(region, ref_time, alias, session_id='', category='', ttac_ver='0.0.0'):
 
-    def insert_header(map_information, reference_time, alias, sesid):
+        comment_string = f"War Thunder v{str(config1.get_game_version())}\\, " \
+                         f"Thunder Tac v{ttac_ver}\\, " \
+                         f"Session ID: {session_id}" \
+                         f"\n"
+
+        run_date, run_time = (str(arrow.now())[:-13]).replace(":", ".").split("T")
+
         acmi_header = (
             f"FileType={'text/acmi/tacview'}\n"
             f"FileVersion={'2.1'}\n"
             f"0,DataSource=War Thunder\n"
-            f"0,DataRecorder=ThunderTac\n"
-            f"0,ReferenceTime={reference_time}Z\n"
-            f"0,RecordingTime={str(arrow.utcnow())[:-13]}Z\n"
+            f"0,DataRecorder=Thunder Tac\n"
+            f"0,ReferenceTime={ref_time}Z\n"
+            f"0,RecordingTime={(str(arrow.now())[:-13])}Z\n"
             f"0,Author={alias}\n"
-            # f"0,Author={players_uid}@{players_cid}\n"
-            f"0,Title={(window_title()[14:]).title()}: {map_information}\n"
-            f"0,Category={sesid}\n"
+            f"0,Title={(get_window_title()[14:]).title()}: {region}\n"
+            f"0,Category={category}\n"
             f"0,Briefing={'None Provided'}\n"
             f"0,Debriefing={'None Provided'}\n"
-            f"0,Comments=v{str(config1.get_game_version())}\n"
+            f"0,Comments={comment_string}"
             f"0,ReferenceLongitude={'0'}\n"
             f"0,ReferenceLatitude={'0'}\n"
         )
 
-        with open(filename, "a", newline="") as f:
-            f.write(acmi_header)
+        with open(filename, "a", newline="") as f_a_acmi_header:
+            f_a_acmi_header.write(acmi_header)
 
     def set_user_object():
         """Object ID assigner"""
-        return hex(random.randint(0, int(0xFFFFFFFFFFFFFFFF)))[2:]
+        max_object_id = 0xFFFFFFFFFFFFFFFF
+        random_object_id = random.randint(0, int(max_object_id))
+        return hex(random_object_id)[2:]
 
-    def gamechat(id_msg=0):
-        url_gamechat = f"{WebAPI.CHAT}?lastId={id_msg}"
-        url_gamechat = url_gamechat.format(id_msg)
-        req_gamechat = requests.get(url_gamechat, timeout=0.02)
-        return req_gamechat.json()
+    def get_game_chat(id_msg=0):
+        url_game_chat = f"{WebAPI.CHAT}?lastId={id_msg}"
+        url_game_chat = url_game_chat.format(id_msg)
+        req_game_chat = requests.get(url_game_chat, timeout=0.02)
+        return req_game_chat.json()
 
-    def hudmsg(lastevt=0, lastdmg=0):
-        # def hudmsg(id_evt=0, id_dmg=0):
-        #     url_hudmsg = f"{WebAPI.HMSG}?lastEvt={id_evt}&lastDmg={id_dmg}"
-        #     url_hudmsg = url_hudmsg.format(id_evt, id_dmg)
-        #     req_hudmsg = requests.get(url_hudmsg, timeout=0.02)
-        #     return req_hudmsg.json()
+    def get_hud_msg(last_event=0, last_damage=0):
         try:
-            req = "http://localhost:8111/hudmsg?lastEvt={}&lastDmg={}"
-            x = requests.get(req.format(lastevt, lastdmg), timeout=0.02).json()
-            return x
-        except (IndexError, requests.exceptions.ReadTimeout):
-            pass
+            hud_msg_request = f"{WebAPI.HMSG}?lastEvt={last_event}&lastDmg={last_damage}"
+            hud_msg_response = requests.get(hud_msg_request, timeout=0.02).json()
+            return hud_msg_response
+        except (IndexError, requests.exceptions.ReadTimeout) as err_get_hud_msg:
+            loguru.logger.debug(err_get_hud_msg)
 
     def get_unit():
         wt_units_lookup = None
@@ -434,73 +311,64 @@ def main_fun():
             with open('wtunits.json', 'r', encoding='utf-8') as f:
                 wt_units_lookup = json.loads(f.read())
         except FileNotFoundError:
-            wt_units_host = 'https://raw.githubusercontent.com/diVineProportion/ThunderTac/rewrite/wtunits.json'
+            wt_units_host = 'https://raw.githubusercontent.com/diVineProportion/ThunderTac/ThunderTacX/wtunits.json'
             wt_units_data = requests.get(wt_units_host).json()
             wt_units_version = wt_units_data['version']
             loguru.logger.info(f"[A] UNITS LIBRARY: War Thunder v'{wt_units_version}' Loaded")
             wt_game_version = config1.get_game_version()
             if wt_game_version != wt_units_version:
+                # g_major, g_minor, g_subminor, g_patch = wt_game_version.split('.')
+                # v_major, v_minor, v_subminor, v_patch = wt_units_version.split('.')
+                # if v_major != g_major:
+                #     loguru.logger.debug(f'[A] VER. MISMATCH:
+                #     if v_minor != g_minor:
+                #         loguru.logger.debug(f'[A] VER. MISMATCH:
+                #         if v_subminor != g_subminor:
+                #             loguru.logger.debug(f'[A] VER. MISMATCH:
+                #             if v_patch != g_patch:
+                #                 loguru.logger.debug(f'[A] VER. MISMATCH:
+                #
                 loguru.logger.debug(
                     f'[A] VER. MISMATCH: unit_library=v"{wt_units_version}" | game_library=v"{wt_game_version}"')
         finally:
             return wt_units_lookup
 
-    def inspector(message=""):
-        pass
-        # import inspect
-        # _ = inspect.stack()
-        # path_full = _[1][1]
-        # from_line = _[1][2]
-        # from_modu = _[1][3]
-        # name_file = path_full.split("ThunderTac")[-1]
-        # tracker = loguru.logger.level("TRACK", no=38, color="<red>")
-        # loguru.logger.log("TRACK", f"{name_file}:{from_modu}:{from_line} | {message}")
-
     def nxt_sort():
-        if State.Client.player_obj != "":
+        if State.Client.player_obj:
             loguru.logger.debug(f"[P] PLAYER OBJECT: -0x{State.Client.player_obj.upper()}")
-        State.Client.player_obj = ""
+        State.Client.player_obj = False
         State.Recorder.sortie_header = False
         State.Recorder.discover_unit = False
         State.Recorder.once_per_spawn = False
 
     def nxt_batt():
         loguru.logger.debug(f"[S] BATT FINISHED: {user_sesid}")
-        State.Recorder.active = False
-        State.Recorder.header_placed = False
         State.Messages.hangar = False
         State.Map.information = False
-        acmi_zip_out()
-        acmi_ftp_out()
+        State.Recorder.active = False
+        State.Recorder.header_placed = False
+        acmi2zip()
+        acmi2ftp()
 
     def handler(signal_received, frame):
-        State.Recorder.active = False
-        State.Recorder.header_placed = False
-        State.Messages.hangar = False
         State.Map.information = False
-        if os.path.exists('temp.ini'):
-            os.remove('temp.ini')
-        acmi_zip_out()
-        # acmi_ftp_out()
+        State.Recorder.active = False
+        State.Messages.hangar = False
+        State.Recorder.header_placed = False
+        acmi2zip()
+        # acmi2ftp()
         print('SIGINT or CTRL-C detected. Exiting gracefully')
         sys.exit(0)
 
     def area_init():
-        if os.path.exists('temp.ini'):
-            os.remove('temp.ini')
-        tempdb = init_temp_db()
         map_info.main_def()
         location = map_info.get_info()
-        tempdb.read('temp.ini')
-        tempdb['MAP_INFO']['map_lookup_result'] = location
-        with open('temp.ini', 'w') as f:
-            tempdb.write(f)
         map_total_x, map_total_y = map_info.get_data()
-        lat = map_total_x / 111302
-        long = map_total_y / 111320
-        return lat, long, location, tempdb
+        area_latitude = map_total_x / 111302
+        area_longitude = map_total_y / 111320
+        return area_latitude, area_longitude, location
 
-    def acmi_zip_out():
+    def acmi2zip():
         if os.path.isfile(filename):
             try:
                 import zlib
@@ -516,42 +384,36 @@ def main_fun():
                 loguru.logger.debug(f'Adding "{filename}" to "{filename}.zip" using mode "{mode_name}"')
                 f.write(f'{filename}', compress_type=compression)
 
-    def acmi_ftp_out():
-        plfile = pathlib.Path(filename)
-        if plfile.is_file():
-            filename_parts = plfile.parts
+    def acmi2ftp():
+        pathlib_file_object = pathlib.Path(filename)
+        if pathlib_file_object.is_file():
+            filename_parts = pathlib_file_object.parts
             if ftp_send:
                 ftp = ftplib.FTP(ftp_addr, ftp_user, ftp_pass)
+
                 try:
                     file = open(f'{filename}.zip', 'rb')
-                except FileNotFoundError:
-                    print('file not found')
-                except UnboundLocalError:
-                    print('unknown exception')
-
-
+                except FileNotFoundError as err_acmi_ftp_out_file_not_found:
+                    loguru.logger.warning(err_acmi_ftp_out_file_not_found)
+                except UnboundLocalError as err_acmi_ftp_out_unbound_local_error:
+                    loguru.logger.warning(err_acmi_ftp_out_unbound_local_error)
                 try:
-                     ftp.cwd(filename_parts[0])
-                except ftplib.error_perm as e:
+                    ftp.cwd(filename_parts[0])
+                except ftplib.error_perm as err_acmi_ftp_out_change_working_directory_1:
+                    loguru.logger.debug(err_acmi_ftp_out_change_working_directory_1)
                     ftp.mkd(filename_parts[0])
                     ftp.cwd(filename_parts[0])
                 finally:
                     try:
-                         ftp.cwd(filename_parts[1])
-                    except ftplib.error_perm as e:
+                        ftp.cwd(filename_parts[1])
+                    except ftplib.error_perm as err_acmi_ftp_out_change_working_directory_2:
+                        loguru.logger.debug(err_acmi_ftp_out_change_working_directory_2)
                         ftp.mkd(filename_parts[1])
                         ftp.cwd(filename_parts[1])
-                ftp.storbinary(f'STOR {plfile.name}.zip', file)
+
+                ftp.storbinary(f'STOR {pathlib_file_object.name}.zip', file)
                 file.close()
                 ftp.quit()
-
-            # # DEPRECIATED
-            # if ftp_send:
-            #     session = FTP(ftp_addr, ftp_user, ftp_pass)
-            #     file = open(filename + '.zip', 'rb')  # file to send
-            #     session.storbinary('STOR {}'.format(filename + '.zip'), file)  # send the file
-            #     file.close()  # close file and FTP
-            #     session.quit()
 
             # # MEGA
             # mega = Mega()
@@ -611,7 +473,7 @@ def main_fun():
             header_placed = False
             discover_unit = False
             sortie_header = False
-            gamechat_start = True
+            start_recording = True
             once_per_spawn = False
 
     class WebAPI:
@@ -623,125 +485,31 @@ def main_fun():
         OBJT = f"{BASE}/map_obj.json"
         CHAT = f"{BASE}/gamechat"
         HMSG = f"{BASE}/hudmsg"
+
     last_id_msg = 0
     last_id_evt = 0
     last_id_dmg = 0
 
     unit_lookup = get_unit()
     ntp = ntplib.NTPClient()
-    tick0 = time.perf_counter()
 
-    # players_uid = cfg.players_uid
-    # players_cid = cfg.players_cid
-
-    id_kill_list = []
-    print_once = {'in_lobby': False,
-                  'in_match': False,
-                  'in_fight': False}
-
-    pp = pprint.PrettyPrinter(width=100, compact=False)
     _dict_sesid = collections.OrderedDict()
     _list_teams = []
     time_start = time.time()
 
     if ttac_usr is None or ttac_usr == '':
         config1.get_user_alias()
-    # platform_data = {
-    #     'Darwin': {
-    #         'name': 'aces',
-    #         'path': 'My Games/WarThunder'
-    #     },
-    #     'Linux': {
-    #         'name': 'aces',
-    #         'path': '.config/WarThunder'
-    #     },
-    #     'Windows': {
-    #         'name': 'aces.exe',
-    #         'path': 'Documents/My Games/WarThunder'
-    #     }
-    # }
-    #
-    # user_ops_system_ = platform.system()
 
-    # have_proc_id_list = False
-    # aces_chk_running = False
-    #
-    # while not aces_chk_running:
-    #     aces_chk_running = check_for_aces(platform_data[user_ops_system_]['name'])
-    #
-    # while not have_proc_id_list:
-    #     procObjList = [p for p in psutil.process_iter() if platform_data[user_ops_system_]['name'] in p.name()]
-    #     try:
-    #         path_war_rootdir = pathlib.Path(procObjList[0].exe()).parent.parent
-    #     except IndexError:
-    #         pass
-    #     else:
-    #         have_proc_id_list = True
-
-    # path_usr_rootdir = pathlib.Path.home()
-
-    # listOfProcessIds = findProcIdByName(platform_data[platform.system()]['name'])
-    # procObjList = [p for p in psutil.process_iter() if 'aces.exe' in p.name()]
-    # path_usr_rootdir = pathlib.Path.home()
-
-    # path_cfg_endings = platform_data[platform.system()]['path']
-    # path_cfg_rootdir = path_usr_rootdir.joinpath(path_cfg_endings)
-    # path_cfg_file_is = path_cfg_rootdir.joinpath('thundertac.ini')
-
-    # path_war_gamever = path_war_rootdir.joinpath('content/pkg_main.ver')
-    # path_war_confblk = path_war_rootdir.joinpath('config.blk')
-    # info_war_version = war_file_reader(path_war_gamever)
-    # info_war_i18n_is = war_file_reader(path_war_confblk)
-
-    d = {
+    game_logs_path = {
         'Linux': pathlib.Path(cfg_root).joinpath('.game_logs/'),
         'Windows': pathlib.Path(war_path).joinpath('.game_logs/')
     }
-    # path_war_clogdir = d[platform.system()]
-    # temp = f"{str(path_war_clogdir)}/*.clog"
-    # last_clog_fileis = max((glob.glob(temp)), key=os.path.getctime)
-
-    # with open(last_clog_fileis, 'rb') as f:
-    #     xored = f.read()
-    #     xored_byte_array = bytearray(xored)
-    #     unxored = unxor(xored_byte_array)
-    #     text_curr = bytes(unxored).decode('ANSI')
-    #     with open('unxored.txt', 'w', encoding='ANSI') as f:
-    #         f.write(text_curr)
-    #     #xxx = re.search(r"[\d]+\.[\d]+ \[D\].* (\w+)\[(\d+)\] successfully passed yuplay authorization",
-    #     xxx = re.search(r"(\w+)\[(\d+)\] successfully passed yuplay authorization",
-    #                     text_curr,
-    #                     re.MULTILINE)
-    #     if xxx:
-    #         print(xxx.groups())
-    #         ttac_usr, user_gid = xxx.group(1), xxx.group(2)
-    #
-
 
     def mqtt_con(client, userdata, flags, rc):
         loguru.logger.debug(f"[Q] CONNECTED: Connected with result code {str(rc)}")
 
     def on_message(client, userdata, msg):
-        # global user_sesid
-        # global time_isset
         print("{}| {}".format(msg.topic, msg.payload.decode()))
-        # print(str(msg.payload.decode("utf-8")), msg.topic, msg.retain)
-        # try:
-        #     if msg.topic.split('TTAC/')[1].split('/TIME_START')[0] == user_sesid:
-        #         time_isset = True
-        #         input('caught')
-        #
-        #     # returnmsg = msg.topic
-        #     # left = returnmsg.split('TTAC/')[1]
-        #     # right = left.split('/TIME_START')[0]
-        #     # print(time_isset)
-        #     # print(dir(client), '\n', dir(userdata), '\n', dir(client), '\n')
-        #     print("{}| {}".format(msg.topic, msg.payload.decode()))
-        #     # print("message received  ", str(msg.payload.decode("utf-8")), "topic", msg.topic, "retained ", msg.retain)
-        #     # if msg.retain == 1:
-        #     #     print("This is a retained message")
-        # except NameError as e:
-        #     print(e)
 
     def on_subscribe(client, userdata, mid, granted_qos, properties=None):
         print(mid)
@@ -751,14 +519,14 @@ def main_fun():
     client.on_message = on_message
     client.on_subscribe = on_subscribe
 
-    # 0
+
     while True:
 
         # SIGINT: INIT
         signal(SIGINT, handler)
 
         # DISCOVER: WINDOW TITLE
-        curr_game_state = window_title()
+        curr_game_state = get_window_title()
 
         # PROGRAM STATE: IN HANGAR
         if curr_game_state == State.GameState.TITLE_HANG:
@@ -768,52 +536,61 @@ def main_fun():
                 loguru.logger.info("[S] IDLE @ HANGAR: JOIN (TEST|BATTLE|CUSTOM)")
                 State.Messages.hangar = True
 
-            # # STDOUT: RECORDING FINISHED
-            # if not State.Messages.rec_end:
-            #     loguru.logger.info("[R] THUNDERTAC RECORDING HAS TERMINATED")
-            #     State.Messages.rec_end = True
+            # STDOUT: RECORDING FINISHED
+            """if not State.Messages.rec_end:
+                loguru.logger.info("[R] THUNDERTAC RECORDING HAS TERMINATED")
+                State.Messages.rec_end = True"""
 
         # PROGRAM STATE: TEST FLIGHT
-            """elif curr_game_state == State.GameState.TITLE_TEST:
-
+        elif curr_game_state == State.GameState.TITLE_TEST:
+            mission_category = 'Test Flight'
             # CHECK: LOCATION DATA
             if not State.Map.information:
 
-                lati_m, long_m, map_area, temp_db = area_init()
-                if lati_m is not None and long_m is not None:
+                latitude, longitude, map_area = area_init()
+                if (latitude and longitude) is not None:
                     State.Map.information = True
+            State.Recorder.header_placed = False
             State.Recorder.sortie_header = False
             State.Recorder.active = True
-            time_rec_start = time.time()"""
+            time_rec_start = time.time()
 
         # PROGRAM STATE: IN BATTLE
         elif curr_game_state == State.GameState.TITLE_BATT:
+            mission_category = 'Multiplayer Battle'
 
             # CHECK: LOCATION DATA
             if not State.Map.information:
-                lati_m, long_m, map_area, temp_db = area_init()
-                if lati_m is not None and long_m is not None:
+                latitude, longitude, map_area = area_init()
+                State.Map.information = True
 
-                    path_war_clogdir = d[platform.system()]
-                    temp = f"{str(path_war_clogdir)}/*.clog"
-                    last_clog_fileis = max((glob.glob(temp)), key=os.path.getctime)
-                    with open(last_clog_fileis, 'rb') as f:
-                        xored = f.read()
-                        xored_byte_array = bytearray(xored)
-                        unxored = unxor(xored_byte_array)
-                        import cchardet as chardet
-                        result = chardet.detect(bytes(unxored))
+                if (latitude and longitude) is not None:
+                    path_war_clog_dir = game_logs_path[platform.system()]
+                    temp = f"{str(path_war_clog_dir)}/*.clog"
+                    last_clog_found = max((glob.glob(temp)), key=os.path.getctime)
+
+                    with open(last_clog_found, 'rb') as f:
+                        loguru.logger.debug('XOR CLOG DECRYPTION')
+                        xor_ed = f.read()
+                        xor_ed_byte_array = bytearray(xor_ed)
+                        un_xor_ed = un_xor(xor_ed_byte_array)
                         try:
-                            text_curr = bytes(unxored).decode(result['encoding'])
-                        except LookupError:
-                            print('IF THIS IS THE FIRST TIME RUNNING THUNDERTAC, '
-                                  'PLEASE JOIN & LEAVE A CUSTOM BATTLE, THEN RESTART')
-                            sys.exit()
+                            if platform.system() == "Windows":
+                                decoding_result = bytes(un_xor_ed).decode('ANSI')
 
-                    split_lines = text_curr.split('\n')
-                    user_sesid = get_user_sesid(split_lines, _dict_sesid)[-1]
+                            elif platform.system() == "Linux":
+                                import cchardet as chardet
+                                decoding_result = chardet.detect(bytes(un_xor_ed))
+                                decoding_result = decoding_result['encoding']
+
+                        except LookupError as e:
+                            loguru.logger.error(f'XOR DECODING FAILED: {e}')
+                            os.system('PRESS ANY KEY TO EXIT')
+                            os.system('PAUSE>NUL')
+
+                    split_lines = decoding_result.split('\n')
+                    user_sesid = get_user_session_id(split_lines, _dict_sesid)[-1]
                     users_team = get_users_team(split_lines, _list_teams, ttac_usr)[-1]
-                    team_color = None
 
                     client.connect("tacserv.tk", 1883, 60, )
                     client.loop_start()
@@ -821,26 +598,14 @@ def main_fun():
                     # client.subscribe(f"TTAC/{user_sesid}/TIME_START")
                     client.publish(f'TTAC/{user_sesid}/players/{user_gid}',
                                    f"{ttac_usr} is fighting for team {users_team}.", retain=True)
-                State.Map.information = True
 
-            # if not State.Messages.trigger_chat:
-            #     loguru.logger.debug(f"[T] START TRIGGER: MASTER={ttac_mas}, TRIGGER={ttac_rec}")
-            #     loguru.logger.info(f"[R] START TRIGGER: Waiting for {ttac_mas} ")
-            #     State.Messages.trigger_chat = True
-
-            if State.Recorder.gamechat_start:
-                if State.Map.information:  # and State.Messages.trigger_chat is False:
-                    if debug_on:
-                        loguru.logger.debug("[D] DEBUG TRIGGER: RECOGNIZED")
-                        time_rec_start = time.time()
-                        loguru.logger.info("[R] RECORDING STARTED")
-                        loguru.logger.debug("[R] TIME:" + str(time_rec_start))
-                        State.Recorder.sortie_header = False
-                        State.Recorder.active = True
-                        if not time_isset:
-                            client.publish(f'TTAC/{user_sesid}/times/{user_gid}',
-                                           f"{time_rec_start}", retain=True)
-                            time_isset = True
+            if State.Recorder.start_recording:
+                if State.Map.information:
+                    time_rec_start = time.time()
+                    loguru.logger.info("[R] !! RECORDING STARTED !!")
+                    loguru.logger.debug("[R] RECORD START TIME:" + str(time_rec_start))
+                    State.Recorder.sortie_header = False
+                    State.Recorder.active = True
 
                     # try:
                     #     gamechat_req = gamechat()
@@ -864,16 +629,17 @@ def main_fun():
                     # except requests.exceptions.ReadTimeout as e:
                     #     pass
 
+        # RECORDING STATE: RECORDING
         while State.Recorder.active:
-            try:
-                hudMsg_dmg_return = hudmsg(0, last_id_dmg)['damage']
-                if hudMsg_dmg_return:
-                    # for messages in hudMsg_dmg_return:
-                    #     print(messages['id'], messages['msg'])
-                    last_list = hudMsg_dmg_return
-                    last_id_dmg = last_list[-1]['id']
-            except TypeError:
-                pass
+            # try:
+            #     hudMsg_dmg_return = get_hud_msg(0, last_id_dmg)['damage']
+            #     if hudMsg_dmg_return:
+            #         # for messages in hudMsg_dmg_return:
+            #         #     print(messages['id'], messages['msg'])
+            #         last_list = hudMsg_dmg_return
+            #         last_id_dmg = last_list[-1]['id']
+            # except TypeError:
+            #     pass
             # hudmsgs = get_web_reqs('http://localhost:8111/hudmsg?lastEvt=0&lastDmg=0')
             # this_id = hudmsgs['damage'][-1]['id']
             # this_msg = hudmsgs['damage'][-1]['msg']
@@ -888,97 +654,61 @@ def main_fun():
             #     print_once['in_fight'] = False
             #     sys.exit()
 
-            if window_title() == State.GameState.TITLE_HANG:
+            if get_window_title() == State.GameState.TITLE_HANG:
                 nxt_sort()
                 nxt_batt()
                 break
 
-
             try:
                 map_objects = get_web_reqs(WebAPI.OBJT)
-            except json.decoder.JSONDecodeError as e:
-                loguru.logger.exception(str(e))
+            except json.decoder.JSONDecodeError as err_map_objects_json_decoder_error:
+                loguru.logger.exception(str(err_map_objects_json_decoder_error))
                 State.Recorder.active = False
                 break
 
-
             if map_objects and not State.Recorder.header_placed:
                 filename = set_filename()
-                insert_header(map_area, get_utc_offset(), ttac_usr, user_sesid)
+                insert_header(map_area, get_utc_offset(), ttac_usr, user_sesid, mission_category, ttac_ver='')
                 State.Recorder.header_placed = True
+
             time_this_tick = time.time()
             time_adjusted_tick = arrow.get(time_this_tick - time_rec_start).float_timestamp
 
             try:
                 player = [el for el in map_objects if el["icon"] == "Player"][0]
             except TypeError as e:
-                inspector(e)
+                pass
 
             except (IndexError, TypeError) as err:
                 try:
-                    # if this succeeds, continue will execute
                     player = [el for el in map_objects if el["icon"] == "Player"][0]
-                # exception catches loss of player object on map_obj.json
+                    # if this succeeds, continue will execute
                 except (IndexError, TypeError):
+                    # exception catches loss of player object on map_obj.json
                     pass
                     # TODO: test placing player_fetch_fail here
                 else:
-                    # this causes current iteration of loop to stop
                     continue
+                    # this causes current iteration of loop to stop
 
-                # if this gets set to true, couldn't retrieve player map_obj info
                 player_fetch_fail = True
+                # if this gets set to true, couldn't retrieve player map_obj info
 
-                # if object id assigned, player info get failed, and alt is known
                 if State.Client.player_obj and player_fetch_fail and z is not None:
+                    # if object id assigned, player info get failed, and alt is known
                     # case: player already had object assigned and map_obj.json (player) update failed
 
                     with open(filename, "a", encoding="utf8", newline="") as g:
-                        g.write("#{}".format(time_adjusted_tick) + "\n")
-                        g.write("-" + State.Client.player_obj + "\n")
-                        g.write("0,Event=Destroyed|" + State.Client.player_obj + "|" + "\n")
-                        # if z > 15 and ias > 100:
-                        #     State.Client.parachute = set_user_object()
-                        #     parachute_align_gravity = time_adjusted_tick + 3
-                        #     parachute_touchdown_time = (parachute_down(z) + parachute_align_gravity)
-                        #     g.write(
-                        #         "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},Name=Parachute,"
-                        #         "Type=Air+Parachutist,Coalition=Allies,Color=Blue,AGL={}\n".format(
-                        #             time_adjusted_tick, State.Client.parachute, x, y, z, r, p, h, z
-                        #         )
-                        #     )
-                        #     g.write(
-                        #         "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},Name=Parachute,"
-                        #         "Type=Air+Parachutist,Coalition=Allies,Color=Blue,AGL={}\n".format(
-                        #             parachute_align_gravity, State.Client.parachute, x, y, z - 15, 0, 0, h, z - 15,
-                        #         )
-                        #     )
-                        #     g.write(
-                        #         "#{:0.2f}\n{},T={:0.9f}|{:0.9f}|{}|{:0.1f}|{:0.1f}|{:0.1f},Name=Parachute,"
-                        #         "Type=Air+Parachutist,Coalition=Allies,Color=Blue,AGL={}\n".format(
-                        #             parachute_touchdown_time, State.Client.parachute, x, y, 0, 0, 0, h, 0,
-                        #         )
-                        #     )
-                        #     g.write(
-                        #         "#{:0.2f}\n-{}\n0,Event=Destroyed|{}|\n".format(
-                        #             parachute_touchdown_time,
-                        #             State.Client.parachute,
-                        #             State.Client.parachute,
-                        #         )
-                        #     )
+                        g.write(f"#{time_adjusted_tick}\n")
+                        g.write(f"0,Event=Destroyed|{State.Client.player_obj}|\n")
+                        g.write(f"-{State.Client.player_obj}\n")
                         nxt_sort()
-                        inspector()
-                        curr_game_state = window_title()
+                        curr_game_state = get_window_title()
 
                         if curr_game_state == State.GameState.TITLE_HANG:
-                            loguru.logger.info("[S] UNKNOWN")
-                            State.Recorder.active = False
                             State.Map.information = False
-                            # TODO: INCO INTO RESET()
-                            # acmi_zip_out()
-                            # acmi_ftp_out()
+                            State.Recorder.active = False
                             State.Recorder.discover_unit = False
-
                         continue
 
                 elif not State.Client.player_obj and player_fetch_fail:
@@ -992,15 +722,17 @@ def main_fun():
             if not State.Client.player_obj and not player_fetch_fail:
                 State.Client.player_obj = set_user_object()
                 loguru.logger.debug(f"[P] PLAYER OBJECT: +0x{State.Client.player_obj.upper()}")
-
+                    # g.write(f"#{time_adjusted_tick}\n")
+                    # for idx, each_item in enumerate(
+                    #         [el for el in map_objects if el["icon"] != "Player" and el['type'] != 'airfield']):
+                    #     g.write(f"+1000{idx}\n")
             try:
-                x = player["x"] * lati_m
-                y = player["y"] * long_m * -1
+                x = player["x"] * latitude
+                y = player["y"] * longitude * -1
             except NameError as e:
-                inspector(e)
+                pass
             except TypeError as e:
-                inspector(e)
-
+                pass
             try:
                 ind = get_web_reqs(WebAPI.INDI)
                 sta = get_web_reqs(WebAPI.STAT)
@@ -1010,8 +742,8 @@ def main_fun():
 
                 if sta["valid"] and ind["valid"]:
                     z = sta["H, m"]
-                    ias = sta["IAS, km/h"] * CONVTO_MPS
-                    tas = sta["TAS, km/h"] * CONVTO_MPS
+                    ias = sta["IAS, km/h"] * convert_to_mps
+                    tas = sta["TAS, km/h"] * convert_to_mps
                     fuel_kg = sta["Mfuel, kg"]
                     fuel_vol = f = sta["Mfuel, kg"] / sta["Mfuel0, kg"]
                     m = sta["M"]
@@ -1045,23 +777,18 @@ def main_fun():
                                     loguru.logger.error("[P] This plane is not supported")
                             if not State.Recorder.discover_unit:
                                 unit = ind["type"]
-                                try:
-                                    loguru.logger.info(
-                                        f"[P] UNIT RE-SPAWN: {unit_lookup['units'][unit]['full']}")
-                                except KeyError:
-                                    loguru.logger.error("[D] ENTRY MISSING: {}".format(unit))
-                                    loguru.logger.info("[P] UNIT RE-SPAWN: {}".format(unit))
-                                State.Recorder.discover_unit = True
-                                # try:
-                                #     fname, lname, sname = unit_lookup['units'][ind["type"]].values()
-                                # except KeyError:
-                                #     loguru.logger.error("[D] ENTRY MISSING: {}".format(ind["type"]))
-                                #     fname = lname = sname = ind["type"]
-                                # finally:
-                                #     loguru.logger.info("[P] UNIT RE-SPAWN: {}".format(lname))
-                                # State.Recorder.discover_unit = True
+                                if State.Client.player_obj:
+                                    try:
+                                        current_unit = unit_lookup['units'][unit]['full']
+                                        loguru.logger.info(f"[P] UNIT RE-SPAWN: {current_unit}")
+                                    except KeyError:
+                                        loguru.logger.error("[D] ENTRY MISSING: {}".format(unit))
+                                        loguru.logger.info("[P] UNIT RE-SPAWN: {}".format(unit))
+                                    State.Recorder.discover_unit = True
+                                    State.Recorder.once_per_spawn = False
+
                         except Exception as err:
-                            inspector(err)
+                            pass
                         try:
                             pedals = ind["pedals"]
                         except KeyError:
@@ -1075,25 +802,35 @@ def main_fun():
                         except KeyError:
                             stick_ailerons = None
                         try:
-                            stick_ailerons = ind["stick_ailerons"]
+                            stick_elevator = ind["stick_elevator"]
                         except KeyError:
                             stick_elevator = None
 
                         try:
-                            h = ind["compass"]
-                        except KeyError:
                             h = hdg(player["dx"], player["dy"])
+                        except KeyError:
+                            try:
+                                h = ind["compass"]
+                            except KeyError:
+                                h = ind["compass1"]
 
                         if not State.Recorder.once_per_spawn:
                             fname, lname, sname = unit_lookup['units'][unit].values()
                             State.Recorder.once_per_spawn = True
 
-                        if users_team == "1":
+                        if users_team == "0":
+                            team_color = "Orange"
+                            team_coalition = "Neutral"
+                        elif users_team == "1":
                             team_color = "Blue"
+                            team_coalition = "Star (Allies)"
                         elif users_team == "2":
                             team_color = "Red"
-                        else:
-                            team_color = None
+                            team_coalition = "Cross (Axis)"
+                        # TODO: doesn't work, causes wrong team
+                        # else:
+                        #     team_color = "Purple"
+                        #     team_coalition = "Unknown"
 
                         # APPEND TO .ACMI EVERY FRAME/TICK
                         sortie_telemetry = (
@@ -1116,39 +853,60 @@ def main_fun():
                             # + "PilotHeadYaw={},".format(PilotHeadYaw)
                         )
                         # APPEND TO .ACMI ONLY ONCE PER SPAWN
-                        sortie_subheader = (
-                                "Slot={'0'},"
-                                + f"Importance={'1'},"
-                                + f"Parachute={'0'},"
-                                + f"DragChute={'0'},"
-                                + f"Disabled={'0'},"
-                                + f"Pilot={ttac_usr},"
-                                + f"Name={sname},"
-                                + f"ShortName={sname},"
-                                + f"LongName={lname},"
-                                + f"FullName={fname},"
-                                + f"Type={'Air+FixedWing'},"
-                                + f"Color={team_color},"
-                                + f"Callsign={'None'},"
-                                + f"Coalition={'None'},"
+                        sortie_subheader = (f"Slot={'0'}," +
+                                            f"Importance={'1'}," +
+                                            f"Parachute={'0'}," +
+                                            f"DragChute={'0'}," +
+                                            f"Disabled={'0'}," +
+                                            f"Pilot={ttac_usr}," +
+                                            f"Name={sname}," +
+                                            f"ShortName={sname}," +
+                                            f"LongName={lname}," +
+                                            f"FullName={fname}," +
+                                            f"Type={'Air+FixedWing'}," +
+                                            f"Color={team_color}," +
+                                            f"Callsign={'None'}," +
+                                            f"Coalition={team_coalition}"
                         )
 
                         with open(filename, "a", encoding="utf8", newline="") as g:
-                            if not State.Recorder.sortie_header:
-                                g.write(sortie_telemetry + sortie_subheader + "\n")
-                                State.Recorder.sortie_header = True
-                            else:
-                                g.write(sortie_telemetry + "\n")
+                            if State.Client.player_obj:
+                                if not State.Recorder.sortie_header:
+                                    g.write(sortie_telemetry + sortie_subheader + "\n")
+                                    g.write(f"0,Event=Message|{State.Client.player_obj}|has spawned in.\n")
+                                    State.Recorder.sortie_header = True
+                                else:
+                                    g.write(sortie_telemetry + "\n")
+                                #
+                                # g.write(f"#{time_adjusted_tick}\n")
+                                # for idx, each_item in enumerate([el for el in map_objects]):
+                                #     if each_item['color'] == "#60FF37":
+                                #         team_color = "Green"
+                                #     elif each_item['color'] == "#1952FF":
+                                #         team_color = "Blue"
+                                #     elif each_item['color'] == "#f40C00":
+                                #         team_color = "Red"
+                                #     if each_item["icon"] != "Player":
+                                #         pass
+                                #     if each_item['icon'] == 'Ship':
+                                #         g.write(f"1000{idx},T={each_item['x'] * latitude}|{each_item['y'] * longitude * -1}|0,CallSign='thing_'{idx},Name=CG-47 Ticonderoga,Type=Sea+Watercraft+Warship,Color={team_color}\n")
+                                #     if each_item['type'] == "airfield":
+                                #         g.write(
+                                #             f"1000{idx},T={(each_item['sx'] + each_item['ex'])/2 * latitude}|{(each_item['sy'] + each_item['ey'])/2 * longitude * -1}|0,CallSign='thing_'{idx},Name=CVN-65 Enterprise,Type=Sea+Watercraft+Warship,Color={team_color}\n")
+                                #
+
+
                 except KeyError as err:
-                    pass  # inspector(err)
+                    pass
                 except TypeError as err:
                     if State.Recorder.active:
                         pass
 
-            except json.decoder.JSONDecodeError as e:
-                loguru.logger.exception(str(e))
+            except json.decoder.JSONDecodeError as err:
+                pass
             except (TypeError, NameError) as e:
-                loguru.logger.exception(str(e))
+                pass
+                # loguru.logger.exception(str(e))
             # except KeyError as e:
             #     loguru.logger.exception(str(e))
 

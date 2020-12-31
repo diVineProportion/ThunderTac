@@ -5,7 +5,6 @@ import platform
 import urllib.request
 
 import simplejson
-import snoop
 import PIL
 import imagehash
 import loguru
@@ -97,7 +96,7 @@ maps = {
     '0x7020667717979BC3': 'avg_egypt_sinai_map',
     '0x70E4D0F008C0EC78': 'avn_arabian_north_coast_map',
     '0x70F8F8FE6E6F0200': 'honolulu_map',
-  #  0x'003078783C1C8C08': 'honolulu_map',
+    '0x003078783C1C8C08': 'honolulu_map',
     '0x7878FAF6FFEF80F0': 'avg_africa_desert_map',
     '0x7BDB8430607D88C4': 'arcade_rice_terraces_map',
     '0x7C3C1C0E2A0C1F1F': 'avg_eastern_europe_map',
@@ -232,7 +231,7 @@ def latlon2meters(lat1, lon1, lat2, lon2):
     d = r * c
     return d * 1000
 
-# @snoop
+
 def main_def():
     while True:
         try:
@@ -429,7 +428,7 @@ def get_data():
 
     return map_total_area
 
-# @snoop
+
 def get_info(show=False):
     """
         given: when in active battle or test flight
@@ -443,12 +442,10 @@ def get_info(show=False):
         img.save('map.jpg')
     r.close()
 
-
     _dict = {}
     percent_match = None
     # from browser map image, get md5 hash
     _hash = str(imagehash.average_hash(Image.open("map.jpg"))).upper()
-    _hash = f'0x{_hash}'
     try:
         if show:
             loguru.logger.debug(f"[L] ACTUAL HASH  : 0x{_hash}")
@@ -473,7 +470,8 @@ def get_info(show=False):
         if show:
             loguru.logger.debug(f"[L] LOOKUP HASH  : 0x{_hash.upper()}")
             if percent_match:
-                loguru.logger.debug(f"[L] LOOKUP MATCH%: {percent_match * 100}%")
+                percent_match *= 100
+                loguru.logger.debug(f"[L] LOOKUP MATCH : {str(percent_match)[:5]}%")
             else:
                 loguru.logger.debug(f"[L] LOOKUP MATCH : 100.00%")
             loguru.logger.debug(f"[L] REGION IDENT : {match}")

@@ -15,10 +15,11 @@ import psutil
 import requests
 from cursor import cursor
 
+
 class CFG:
 
     def __init__(self):
-    
+
         self.cfg_gen = None
         self.cfg_net = None
         self.cfg_log = None
@@ -28,10 +29,12 @@ class CFG:
         self.cfg_dir = None
         self.cfg_cfg = None
 
-        self.wargame_dir = None
         self.game_version = None
+        self.game_install_path = None
+        self.game_settings_path = None
+        self.game_settings_file = None
+        self.tacx_settings_file = None
 
-        self.config_file = "thundertac.ini"
 
         self.players_sys = platform.system()
         self.players_uid = getpass.getuser()
@@ -40,32 +43,56 @@ class CFG:
 
         self.cp = configparser.ConfigParser()
 
+        self.game_install_path = self.get_war_path()
+
         if self.players_sys == "Darwin":
-            self.wargame_cfg = 'My Games/WarThunder'
-
+            wargame_cfg = 'My Games/WarThunder'
         elif self.players_sys == "Linux":
-            self.wargame_cfg = '.config/WarThunder'
-
+            wargame_cfg = '.config/WarThunder'
         elif self.players_sys == "Windows":
-            self.wargame_cfg = 'Documents/My Games/WarThunder'
+            wargame_cfg = 'Documents/My Games/WarThunder'
+        else:
+            wargame_cfg = None
 
-        self.config_root = pathlib.Path.home().joinpath(self.wargame_cfg)
-        self.config_path = self.config_root.joinpath(self.config_file)
+        self.config_file_name = "thundertac.ini"
 
-        if not self.config_path.exists():
+        self.game_settings_path = pathlib.Path.home().joinpath(wargame_cfg)
+
+        if not self.game_settings_path.is_dir():
+            self.game_settings_path.mkdir(mode=0o777, parents=True, exist_ok=False)
+
+        self.tacx_settings_file = self.game_settings_path.joinpath(self.config_file_name)
+
+        if self.game_install_path is not None:
+            self.i18n = self.aces_language().replace('"', '')
+            if self.i18n != 'English\n':
+                print(f'YOUR GAME CLIENT LANGUAGE {self.i18n} HAS NOT BEEN IMPLEMENTED. CONTACT DEVELOPER')
+                print(f'SWITCHING YOUR GAME CLIENT TO ENGLISH FROM THE LAUNCHER WILL WORK FOR NOW')
+
+        # create thundertac.ini if not exist
+        if not self.tacx_settings_file.exists():
             self.create_cfg()
 
         self.read_cfg()
 
-        # if self.wargame_dir:
-        #     self.get_war_path()
-
     def create_cfg(self):
+        d = {
+            # TODO: CHECK PATH TO LINUX GAME LOGS FOLDER
+            'Linux': self.game_settings_path.joinpath('.game_logs/'),
+            'Windows': pathlib.Path(self.game_install_path).joinpath('.game_logs/')
+        }
+        path_war_clogdir = d[platform.system()]
+        self.clog_files = glob.glob(f"{str(path_war_clogdir)}/*.clog")
+        while True:
+            user_alias_data = self.get_user_alias()
+            try:
+                user_alias = user_alias_data[0]
+                user_gid = user_alias_data[1]
+            except TypeError:
+                self.clog_files.pop()
+            else:
+                break
 
-        user_alias, user_gid = self.get_user_alias()
-        # get_war_path() returns a pathlib object
-        war_path = self.get_war_path().__str__()
-        cfg_root = str(self.config_root)
         self.cp['network'] = {}
         self.cp['general'] = {}
         self.cp['loguru'] = {}
@@ -82,6 +109,7 @@ class CFG:
         self.cp['general']['ttac_rec'] = "ttac.rec"
         self.cp['general']['ttac_int'] = "0.02"
         self.cp['general']['user_gid'] = user_gid
+        self.cp['general']['war_lang'] = self.i18n
         self.cp['loguru']['logger_l'] = "DEBUG"
         self.cp['debug']['debug_on'] = "True"
         self.cp['ftpcred']['ftp_send'] = "False"
@@ -91,19 +119,17 @@ class CFG:
         self.cp['ftpcred']['ftp_sess'] = "WIP"
         self.cp['pyupdater']['pyu_uchn'] = "stable"
         self.cp['pyupdater']['pyu_schn'] = "True"
-        self.cp['path']['war_path'] = war_path
-        self.cp['path']['cfg_root'] = cfg_root
+        self.cp['path']['war_path'] = self.game_install_path.__str__()
+        self.cp['path']['cfg_root'] = self.game_settings_path.__str__()
         self.cp['configinit']['init_run'] = "True"
 
-
-        with open(self.config_path, 'w') as f:
+        with open(self.tacx_settings_file, 'w') as f:
             self.cp.write(f)
 
     def read_cfg(self):
+        self.cp.read(self.tacx_settings_file)
 
-        self.cp.read(self.config_path)
-
-        # self.wargame_dir = self.cp['path']['war_path']
+        # self.game_install_path = self.cp['path']['war_path']
         # for section_title, section_values in (dict(self.cp.items())).items():
         #     print(dict(section_values))
 
@@ -117,28 +143,34 @@ class CFG:
         self.cfg_cfg = dict(self.cp.items('configinit'))
 
     def get_war_path(self):
-        platform_lookup = {"Darwin": "aces", "Linux": "aces", "Windows": "aces.exe"}
-        target = platform_lookup[self.players_sys]
-        cursor.hide()
-        while self.wargame_dir is None:
+
+
+        try:
+            self.game_install_path = pathlib.Path(self.cfg_dir['war_path'])
+            self.game_settings_file = self.game_install_path.joinpath('config.blk')
+            if self.game_settings_file.is_file():
+                return
+        except TypeError:
+            cursor.hide()
+        while self.game_install_path is None:
             try:
+                platform_lookup = {"Darwin": "aces", "Linux": "aces", "Windows": "aces.exe"}
+                target = platform_lookup[self.players_sys]
                 pid_list = [pid.pid for pid in psutil.process_iter() if pid.name() == target]
                 if 0 < len(pid_list):
                     proc = pathlib.Path((psutil.Process(pid_list[0])).exe())
-                    wargame_dir = proc.parent.parent
-                    # loguru.logger.log("PILOT", f"{self.wargame_dir}")
-                    return wargame_dir
+                    self.game_install_path = proc.parent.parent
+                    return self.game_install_path
                 else:
                     with Spinner():
-                        time.sleep(5)
+                        time.sleep(1.75)
             except KeyboardInterrupt:
                 cursor.show()
                 sys.exit()
 
-
     def get_game_version(self):
-        if self.wargame_dir:
-            version_file = self.wargame_dir.joinpath('content/pkg_main.ver')
+        if self.game_install_path:
+            version_file = self.game_install_path.joinpath('content/pkg_main.ver')
             with open(version_file, "r") as frv:
                 self.game_version = frv.read()
                 # self.loguru.logger.log("PILOT", f"{self.game_version}")
@@ -161,74 +193,68 @@ class CFG:
             key_length = len(XOR_KEY)
             for i, c in enumerate(data):
                 d_data[i] = c ^ XOR_KEY[(i % key_length)]
+                # sys.stdout.write(chr(d_data[i]))
+                # print(chr(c))
+                # time.sleep(0.001)
             return d_data
 
-        self.warpath_dir = self.get_war_path()
-        # TODO: MERGE DICT (d) with PATHS FROM CFG INIT (wargame_cfg)
-        d = {
-            # TODO: CHECK PATH TO LINUX GAME LOGS FOLDER
-            'Linux': self.config_root.joinpath('.game_logs/'),
-            'Windows': self.warpath_dir.joinpath('.game_logs/')
-        }
-
-        path_war_clogdir = d[platform.system()]
-        temp = f"{str(path_war_clogdir)}/*.clog"
-        last_clog_fileis = max((glob.glob(temp)), key=os.path.getctime)
+        last_clog_fileis = max((self.clog_files), key=os.path.getctime)
 
         with open(last_clog_fileis, 'rb') as f:
-            xored = f.read()
-            xored_byte_array = bytearray(xored)
-            unxored = unxor(xored_byte_array)
+            xor_ed = f.read()
+
+        xor_ed_byte_array = bytearray(xor_ed)
+        un_xor_ed = unxor(xor_ed_byte_array)
+
+        result = None
+        if self.players_sys == "Darwin":
+            pass
+        elif self.players_sys == "Linux":
             import cchardet as chardet
-            result = chardet.detect(bytes(unxored))
-            try:
-                text_curr = bytes(unxored).decode(result['encoding'])
-                # with open('unxored.txt', 'w', encoding=result['encoding']) as f:
-            #     f.write(text_curr)
-            except LookupError:
-                print('IF THIS IS THE FIRST TIME RUNNING THUNDERTAC, PLEASE JOIN & LEAVE A CUSTOM BATTLE, THEN RESTART')
-                sys.exit()
-            xxx = re.search(r"(\w+)\[(\d+)\] successfully passed yuplay authorization",
-                            text_curr,
-                            re.MULTILINE)
+            result = chardet.detect(bytes(un_xor_ed))
+            result = result['encoding']
+        elif self.players_sys == "Windows":
+            result = 'ANSI'
+        try:
+            text_curr = bytes(un_xor_ed).decode(result)
+            xxx = re.search(r"(\w+)\[(\d+)\] successfully passed yuplay authorization", text_curr, re.M)
             if xxx:
                 print(xxx.groups())
                 user_alias, user_gj_id = xxx.group(1), xxx.group(2)
                 return user_alias, user_gj_id
 
+        except LookupError as err_lookup_err_cfg_xor_decryption:
+            loguru.logger.exception(err_lookup_err_cfg_xor_decryption)
+            sys.exit()
 
-    def inspector(self, message=""):
-        pass
-        import inspect
-        _ = inspect.stack()
-        path_full = _[1][1]
-        from_line = _[1][2]
-        from_modu = _[1][3]
-        name_file = path_full.split("thundertac")[-1]
-        # loguru.logger.log("PILOT", f"{name_file}:{from_modu}:{from_line} | {message}")
+    def aces_language(self):
+        path_config_blk = self.game_install_path.joinpath('config.blk')
+        with open(path_config_blk) as f:
+            lines = f.readlines()
+        for line in lines:
+            if line.startswith('language'):
+                return line.split(':t=')[1]
 
-class API():
-    BASE = None
+
+class API(CFG):
+
     # TODO: INHERIT FRO CFG INSTEAD OF CREATING INSTANCE OF CFG
 
-    def __init__(self):
-
-        from_cfg = CFG()
-
-        host = from_cfg.cfg_net['net_host']
-        port = from_cfg.cfg_net['net_port']
-        BASE = f"http://{host}:{port}"
-        self.LMAP = f"{BASE}/map.img"
-        self.INFO = f"{BASE}/map_info.json"
-        self.STAT = f"{BASE}/state"
-        self.INDI = f"{BASE}/indicators"
-        self.OBJT = f"{BASE}/map_obj.json"
-        self.CHAT = f"{BASE}/gamechat"
-        self.HMSG = f"{BASE}/hudmsg"
+    def __init__(self, port=8111):
+        super().__init__()
+        base_address = f"http://{self.players_cid}:{port}"
+        self.LMAP = f"{base_address}/map.img"
+        self.INFO = f"{base_address}/map_info.json"
+        self.STAT = f"{base_address}/state"
+        self.INDI = f"{base_address}/indicators"
+        self.OBJT = f"{base_address}/map_obj.json"
+        self.CHAT = f"{base_address}/gamechat"
+        self.HMSG = f"{base_address}/hudmsg"
 
     def gamechat(self, lastId=0):
         data = requests.get(f'{self.CHAT}?lastId={lastId}').json()[-1]
         print(data)
+
 
 class Spinner:
     busy = False
@@ -236,13 +262,27 @@ class Spinner:
 
     @staticmethod
     def spinning_cursor():
-        while 1:
-            for cursor in '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏':
-                yield cursor
+
+        while True:
+            s = "LOADING...    "
+            spinner_list = []
+            for s_index, s_value in enumerate(s):
+                s_prefix = 11
+                s_suffix = 0 + s_index
+
+                for j, jj in enumerate(s):
+                    if (s_index + j) <= len(s):
+                        spinner_list.append(s[0:s_index] + " "*(s_prefix-s_index) + s_value + " "*s_suffix)
+                        s_prefix -= 1
+                        s_suffix += 1
+
+            for cursor_iteration in spinner_list:  # '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏':
+                yield cursor_iteration
 
     def __init__(self, delay=None):
         self.spinner_generator = self.spinning_cursor()
-        if delay and float(delay): self.delay = delay
+        if delay and float(delay):
+            self.delay = delay
 
     def spinner_task(self):
         while self.busy:
@@ -251,7 +291,6 @@ class Spinner:
             time.sleep(self.delay)
             sys.stdout.write('\r')
             sys.stdout.flush()
-
 
     def __enter__(self):
         self.busy = True
@@ -264,24 +303,17 @@ class Spinner:
             return False
 
 
-
 if __name__ == '__main__':
-    a = CFG()
-    b = API()
-    print(dir(a))
-    print(a.get_war_path())
+    pass
     # print(b.gamechat())
-
-
-
 
 # class UserInfo:
 #
 #     def __init__(self):
 #
-#         self.wargame_dir = None
+#         self.game_install_path = None
 #
-#         self.config_file = "thundertac.ini"
+#         self.config_file_name = "thundertac.ini"
 #         cp = configparser.ConfigParser()
 #
 #         self.players_sys = platform.system()
@@ -301,21 +333,21 @@ if __name__ == '__main__':
 #             # self.players_uid = os.getenv('USERNAME')
 #             self.wargame_cfg = 'Documents/My Games/WarThunder'
 #
-#         self.config_root = pathlib.Path.home().joinpath(self.wargame_cfg)
-#         self.config_path = self.config_root.joinpath(self.config_file)
+#         self.game_settings_path = pathlib.Path.home().joinpath(self.wargame_cfg)
+#         self.tacx_settings_file = self.game_settings_path.joinpath(self.config_file_name)
 #
 #         self.wargame_dir_known = False
 #
-#         self.wargame_dir = self.get_game_root_dir()
+#         self.game_install_path = self.get_game_root_dir()
 #
-#         # cp.read(self.config_path)
+#         # cp.read(self.tacx_settings_file)
 #         # if cp.has_section('path'):
 #         #     if pathlib.Path(cp['path']['war_path']).exists():
-#         #         self.wargame_dir = pathlib.Path(cp['path']['war_path'])
-#         # if self.wargame_dir == "":
-#         #     self.wargame_dir = self.get_game_root_dir()
-#         #     cp['path']['war_path'] = str(self.wargame_dir)
-#         #     with open(self.config_path, 'w') as f:
+#         #         self.game_install_path = pathlib.Path(cp['path']['war_path'])
+#         # if self.game_install_path == "":
+#         #     self.game_install_path = self.get_game_root_dir()
+#         #     cp['path']['war_path'] = str(self.game_install_path)
+#         #     with open(self.tacx_settings_file, 'w') as f:
 #         #         cp.write(f)
 #
 #     def get_game_root_dir(self):
@@ -326,20 +358,20 @@ if __name__ == '__main__':
 #                 aces_pid = pid
 #                 p = psutil.Process(aces_pid)
 #                 game_path_exe = pathlib.Path(p.exe())
-#                 self.wargame_dir = game_path_exe.parent.parent
+#                 self.game_install_path = game_path_exe.parent.parent
 #                 self.wargame_dir_known = True
-#                 return self.wargame_dir
+#                 return self.game_install_path
 #
 #     def get_game_version(self):
 #         if not self.wargame_dir_known:
 #             self.get_game_root_dir()
 #         if self.wargame_dir_known:
-#             version_file = self.wargame_dir.joinpath('content/pkg_main.ver')
+#             version_file = self.game_install_path.joinpath('content/pkg_main.ver')
 #             with open(version_file, "r") as frv:
 #                 return frv.read()
 #
 #     def aces_language(self):
-#         path_config_blk = self.wargame_dir.joinpath('config.blk')
+#         path_config_blk = self.game_install_path.joinpath('config.blk')
 #         with open(path_config_blk) as f:
 #             lines = f.readlines()
 #         for line in lines:
