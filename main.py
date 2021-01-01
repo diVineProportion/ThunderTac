@@ -217,8 +217,8 @@ def main_fun():
             pass
 
     def get_window_title():
-
-        war_lang_dict = {
+        war_lang = config1.aces_language()[:-1].replace('"', '')
+        lang_dict = {
             "English": {
                 "load": "Loading",
                 "batt": "In battle",
@@ -234,15 +234,24 @@ def main_fun():
                 "wait": "En attente du jeu"
             }
         }
+        render_engine = None
+        if config1.players_sys == "Darwin":
+            pass
+        elif config1.players_sys == "Linux":
+            render_engine = " (Vulkan, 64bit)"
+        elif config1.players_sys == "Windows":
+            render_engine = ""
+
+        base = f"War Thunder{render_engine}"
+        title_hang = f"{base}"
+        title_load = f"{base} - {lang_dict[war_lang]['load']}"
+        title_batt = f"{base} - {lang_dict[war_lang]['batt']}"
+        title_driv = f"{base} - {lang_dict[war_lang]['driv']}"
+        title_test = f"{base} - {lang_dict[war_lang]['test']}"
+        title_wait = f"{base} - {lang_dict[war_lang]['wait']}"
 
         if platform.system() == "Windows":
             from win32gui import FindWindowEx
-            title_hang = f"War Thunder"
-            title_load = f"War Thunder - {war_lang_dict[war_lang]['load']}"
-            title_batt = f"War Thunder - {war_lang_dict[war_lang]['batt']}"
-            title_driv = f"War Thunder - {war_lang_dict[war_lang]['driv']}"
-            title_test = f"War Thunder - {war_lang_dict[war_lang]['test']}"
-            title_wait = f"War Thunder - {war_lang_dict[war_lang]['wait']}"
             list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test]
             for window_title in list_window_titles:
                 window_handle = FindWindowEx(None, None, None, window_title)
@@ -250,37 +259,49 @@ def main_fun():
                     return window_title
 
         elif platform.system() == "Linux":
+            import ewmh
+            window_manager = ewmh.EWMH()
+            title_hang = bytes(title_hang, "utf-8")
+            title_load = bytes(title_load, "utf-8")
+            title_batt = bytes(title_batt, "utf-8")
+            title_driv = bytes(title_driv, "utf-8")
+            title_test = bytes(title_test, "utf-8")
+            title_wait = bytes(title_wait, "utf-8")
+            list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test]
             try:
-                import ewmh
-                window_manager = ewmh.EWMH()
-                if war_lang == "English":
-                    title_hang = b"War Thunder (Vulkan, 64bit)"
-                    title_load = b"War Thunder (Vulkan, 64bit) - Loading"
-                    title_batt = b"War Thunder (Vulkan, 64bit) - In battle"
-                    title_driv = b"War Thunder (Vulkan, 64bit) - Test Drive"
-                    title_test = b"War Thunder (Vulkan, 64bit) - Test Flight"
-                    title_wait = b"War Thunder (Vulkan, 64bit) - Waiting for game"
-                elif war_lang == "French":
-                    title_hang = bytes("War Thunder (Vulkan, 64bit)", "utf-8")
-                    title_load = bytes("War Thunder (Vulkan, 64bit) - Téléchargement en cours", "utf-8")
-                    title_batt = bytes("War Thunder (Vulkan, 64bit) - Dans la bataille", "utf-8")
-                    title_driv = bytes("War Thunder (Vulkan, 64bit) - Test Drive", "utf-8")
-                    title_test = bytes("War Thunder (Vulkan, 64bit) - Vol test", "utf-8")
-                    title_wait = bytes("War Thunder (Vulkan, 64bit) - En attente du jeu", "utf-8")
-                    # b'War Thunder (OpenGL3, 64bit)'
-                    # b'War Thunder (OpenGL3, 64bit) - Vol test'(Test Flight)
-                    # b'War Thunder (OpenGL3, 64bit) - T\xc3\xa9l\xc3\xa9chargement en cours'(Loading)
-                    # b'War Thunder (OpenGL3, 64bit) - Dans la bataille'(In Battle)
-                    # b'War Thunder (OpenGL3, 64bit) - Essai du v\xc3\xa9hicule'(Test Drive)
-                list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test]
                 client_list = window_manager.getClientList()
                 for window in client_list:
                     if window_manager.getWmName(window) in list_window_titles:
                         window_title_from_window_id = window_manager.getWmName(window)
-                        return window_title_from_window_id.decode('utf-8')
+                        return window_title_from_window_id
             except Exception as err_ewmh:
                 print(err_ewmh)
 
+                #     title_hang = b'War Thunder (Vulkan, 64bit)'
+                #     title_load = b'War Thunder (Vulkan, 64bit) - Loading'
+                #     title_batt = b'War Thunder (Vulkan, 64bit) - In battle'
+                #     title_driv = b'War Thunder (Vulkan, 64bit) - Test Drive'
+                #     title_test = b'War Thunder (Vulkan, 64bit) - Test Flight'
+                #     title_wait = b'War Thunder (Vulkan, 64bit) - Waiting for game'
+                # elif war_lang == "French":
+                #     title_hang = b'War Thunder (Vulkan, 64bit)'
+                #     title_load = b'War Thunder (Vulkan, 64bit) - T\xc3\xa9l\xc3\xa9chargement en cours'
+                #     title_batt = b'War Thunder (Vulkan, 64bit) - Dans la bataille'
+                #     title_driv = b'War Thunder (Vulkan, 64bit) - Essai du v\xc3\xa9hicule'
+                #     title_test = b'War Thunder (Vulkan, 64bit) - Vol test'
+                #     title_wait = b'War Thunder (Vulkan, 64bit) - En attente du jeu'
+
+                # title_hang = bytes("War Thunder (Vulkan, 64bit)", "utf-8")
+                # title_load = bytes("War Thunder (Vulkan, 64bit) - Téléchargement en cours", "utf-8")
+                # title_batt = bytes("War Thunder (Vulkan, 64bit) - Dans la bataille", "utf-8")
+                # title_driv = bytes("War Thunder (Vulkan, 64bit) - Test Drive", "utf-8")
+                # title_test = bytes("War Thunder (Vulkan, 64bit) - Vol test", "utf-8")
+                # title_wait = bytes("War Thunder (Vulkan, 64bit) - En attente du jeu", "utf-8")
+                # b'War Thunder (Vulkan, 64bit)'
+                # b'War Thunder (Vulkan, 64bit) - Vol test'(Test Flight)
+                # b'War Thunder (Vulkan, 64bit) - T\xc3\xa9l\xc3\xa9chargement en cours'(Loading)
+                # b'War Thunder (Vulkan, 64bit) - Dans la bataille'(In Battle)
+                # b'War Thunder (Vulkan, 64bit) - Essai du v\xc3\xa9hicule'(Test Drive)
     def hdg(dx, dy):
         """Fallback in case compass is missing from indicators panel"""
         dx *= longitude
@@ -474,20 +495,28 @@ def main_fun():
 
         class GameState:
             if platform.system() == "Windows":
-                TITLE_HANG = "War Thunder"
-                TITLE_LOAD = "War Thunder - Loading"
-                TITLE_BATT = "War Thunder - In battle"
-                TITLE_DRIV = "War Thunder - Test Drive"
-                TITLE_TEST = "War Thunder - Test Flight"
-                TITLE_WAIT = "War Thunder - Waiting for game"
+                if war_lang == "English":
+                    TITLE_HANG = "War Thunder"
+                    TITLE_LOAD = "War Thunder - Loading"
+                    TITLE_BATT = "War Thunder - In battle"
+                    TITLE_DRIV = "War Thunder - Test Drive"
+                    TITLE_TEST = "War Thunder - Test Flight"
+                    TITLE_WAIT = "War Thunder - Waiting for game"
+                elif war_lang == "French":
+                    TITLE_HANG = "War Thunder"
+                    TITLE_LOAD = "War Thunder - Téléchargement en cours"
+                    TITLE_BATT = "War Thunder - Dans la bataille"
+                    TITLE_DRIV = "War Thunder - Test Drive"
+                    TITLE_TEST = "War Thunder - Vol test"
+                    TITLE_WAIT = "War Thunder - En attente du jeu"
             elif platform.system() == "Linux":
-                # TODO: add language split like line 264
-                TITLE_HANG = "War Thunder (Vulkan, 64bit)"
-                TITLE_LOAD = "War Thunder (Vulkan, 64bit) - Téléchargement en cours"
-                TITLE_BATT = "War Thunder (Vulkan, 64bit) - Dans la bataille"
-                TITLE_DRIV = "War Thunder (Vulkan, 64bit) - Test Drive"
-                TITLE_TEST = "War Thunder (Vulkan, 64bit) - Vol test"
-                TITLE_WAIT = "War Thunder (Vulkan, 64bit) - En attente du jeu"
+                if war_lang == "French":
+                    TITLE_HANG = "War Thunder (Vulkan, 64bit)"
+                    TITLE_LOAD = "War Thunder (Vulkan, 64bit) - Téléchargement en cours"
+                    TITLE_BATT = "War Thunder (Vulkan, 64bit) - Dans la bataille"
+                    TITLE_DRIV = "War Thunder (Vulkan, 64bit) - Test Drive"
+                    TITLE_TEST = "War Thunder (Vulkan, 64bit) - Vol test"
+                    TITLE_WAIT = "War Thunder (Vulkan, 64bit) - En attente du jeu"
             # PLACEHOLDER = "War Thunder OpenGL"
             # PLACEHOLDER = "War Thunder D3DX9"
 
@@ -597,23 +626,26 @@ def main_fun():
                 State.Map.information = True
 
                 if (latitude and longitude) is not None:
-                    path_war_clog_dir = game_logs_path[platform.system()]
-                    temp = f"{str(path_war_clog_dir)}/*.clog"
-                    last_clog_found = max((glob.glob(temp)), key=os.path.getctime)
+                    path_war_clogdir = game_logs_path[platform.system()]
+                    temp = f"{str(path_war_clogdir)}/*.clog"
+                    last_clog_fileis = max((glob.glob(temp)), key=os.path.getctime)
+                    with open(last_clog_fileis, 'rb') as f:
+                        xored = f.read()
+                        xored_byte_array = bytearray(xored)
+                        unxored = un_xor(xored_byte_array)
 
-                    with open(last_clog_found, 'rb') as f:
-                        loguru.logger.debug('XOR CLOG DECRYPTION')
-                        xor_ed = f.read()
-                        xor_ed_byte_array = bytearray(xor_ed)
-                        un_xor_ed = un_xor(xor_ed_byte_array)
+                        if config1.players_sys == "Linux":
+                            import cchardet as chardet
+                            result = chardet.detect(bytes(unxored))
+                            decode_type = result['encoding']
+                        elif config1.players_sys == "Windows":
+                            decode_type = 'ANSI'
                         try:
-                            if platform.system() == "Windows":
-                                decoding_result = bytes(un_xor_ed).decode('ANSI')
-
-                            elif platform.system() == "Linux":
-                                import cchardet as chardet
-                                decoding_result = chardet.detect(bytes(un_xor_ed))
-                                decoding_result = decoding_result['encoding']
+                            decoding_result = bytes(unxored).decode(decode_type)
+                        except LookupError:
+                            print('IF THIS IS THE FIRST TIME RUNNING THUNDERTAC, '
+                                  'PLEASE JOIN & LEAVE A CUSTOM BATTLE, THEN RESTART')
+                            sys.exit()
 
                         except LookupError as e:
                             loguru.logger.error(f'XOR DECODING FAILED: {e}')
@@ -622,7 +654,9 @@ def main_fun():
 
                     split_lines = decoding_result.split('\n')
                     user_sesid = get_user_session_id(split_lines, _dict_sesid)[-1]
+                    loguru.logger.debug(user_sesid)
                     users_team = get_users_team(split_lines, _list_teams, ttac_usr)[-1]
+                    loguru.logger.debug(users_team)
 
                     mqtt_client.connect("tacserv.tk", 1883, 60, )
                     mqtt_client.loop_start()
@@ -634,8 +668,7 @@ def main_fun():
             if State.Recorder.start_recording:
                 if State.Map.information:
                     time_rec_start = time.time()
-                    loguru.logger.info("[R] !! RECORDING STARTED !!")
-                    loguru.logger.debug("[R] RECORD START TIME:" + str(time_rec_start))
+                    loguru.logger.info("[R] RECORD ACTIVE:" + str(time_rec_start))
                     State.Recorder.sortie_header = False
                     State.Recorder.active = True
 
