@@ -57,7 +57,8 @@ def main_fun():
     # ttac_rec = config1.cfg_gen['ttac_rec']
     # ttac_int = config1.cfg_gen['ttac_int']
     user_gid = config1.cfg_gen['user_gid']
-    war_lang = config1.cfg_gen['war_lang']
+    # war_lang = config1.cfg_gen['war_lang']
+    war_lang = config1.i18n[:-1].replace('"', '')
     # logger_l = config1.cfg_log['logger_l']
     # debug_on = config1.cfg_dbg['debug_on']
     ftp_send = config1.cfg_ftp['ftp_send']
@@ -217,7 +218,6 @@ def main_fun():
             pass
 
     def get_window_title():
-        war_lang = config1.aces_language()[:-1].replace('"', '')
         lang_dict = {
             "English": {
                 "load": "Loading",
