@@ -383,14 +383,14 @@ def main_def():
     br_lat = map_total_y / scalar_lat_min * -1
     br_lon = map_total_x / scalar_lon_min * 1
 
-    tex_insert['Resources']['CustomTextureList']['CustomTexture']['BottomLeft']['Longitude'] = bl_lon
-    tex_insert['Resources']['CustomTextureList']['CustomTexture']['BottomLeft']['Latitude'] = bl_lat
-    tex_insert['Resources']['CustomTextureList']['CustomTexture']['BottomRight']['Longitude'] = br_lon
-    tex_insert['Resources']['CustomTextureList']['CustomTexture']['BottomRight']['Latitude'] = br_lat
-    tex_insert['Resources']['CustomTextureList']['CustomTexture']['TopLeft']['Longitude'] = tl_lon
-    tex_insert['Resources']['CustomTextureList']['CustomTexture']['TopLeft']['Latitude'] = tl_lat
-    tex_insert['Resources']['CustomTextureList']['CustomTexture']['TopRight']['Longitude'] = tr_lon
-    tex_insert['Resources']['CustomTextureList']['CustomTexture']['TopRight']['Latitude'] = tr_lat
+    tex_insert['Resources']['CustomTextureList']['CustomTexture']['BottomLeft']['Longitude'] = str(bl_lon)
+    tex_insert['Resources']['CustomTextureList']['CustomTexture']['BottomLeft']['Latitude'] = str(bl_lat)
+    tex_insert['Resources']['CustomTextureList']['CustomTexture']['BottomRight']['Longitude'] = str(br_lon)
+    tex_insert['Resources']['CustomTextureList']['CustomTexture']['BottomRight']['Latitude'] = str(br_lat)
+    tex_insert['Resources']['CustomTextureList']['CustomTexture']['TopLeft']['Longitude'] = str(tl_lon)
+    tex_insert['Resources']['CustomTextureList']['CustomTexture']['TopLeft']['Latitude'] = str(tl_lat)
+    tex_insert['Resources']['CustomTextureList']['CustomTexture']['TopRight']['Longitude'] = str(tr_lon)
+    tex_insert['Resources']['CustomTextureList']['CustomTexture']['TopRight']['Latitude'] = str(tr_lat)
 
     # TODO: check for existing .xml and append rather than overwrite
     if platform.system() == "Windows":
@@ -416,7 +416,7 @@ def get_data():
     map_min_m = inf_req['map_min']
     grid_zero = inf_req['grid_zero']
     grid_step = inf_req['grid_steps']
-    map_total = float(map_max_m[0]) - float(map_min_m[0])
+    # map_total = float(map_max_m[0]) - float(map_min_m[0])
     # step_quantity = map_total / float(grid_step[0])
     map_total_x = float(map_max_m[0]) - float(map_min_m[0])
     map_total_y = float(map_max_m[1]) - float(map_min_m[1])
@@ -493,7 +493,7 @@ if __name__ == '__main__':
     # try:
     #     main_def()
     #     get_data()
-    #     get_info()
+    #     get_info()str()
     # except urllib.error.URLError as e:
     #     print(f'ERROR: {e}')
     #     input('check aces.exe running and in match')

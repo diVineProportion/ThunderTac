@@ -77,8 +77,6 @@ def main_fun():
     # loguru.logger.remove()
     # loguru.logger.add(sys.stderr, level=logger_l)
 
-    convert_to_mps = 0.277778
-
     # TODO: CLEAN THIS GARBAGE UP
     filename = ""
     users_team = "0"
@@ -240,7 +238,8 @@ def main_fun():
         elif config1.players_sys == "Linux":
             render_engine = " (Vulkan, 64bit)"
         elif config1.players_sys == "Windows":
-            render_engine = ""
+            render_engine = ''
+
 
         base = f"War Thunder{render_engine}"
         title_hang = f"{base}"
@@ -302,6 +301,7 @@ def main_fun():
                 # b'War Thunder (Vulkan, 64bit) - T\xc3\xa9l\xc3\xa9chargement en cours'(Loading)
                 # b'War Thunder (Vulkan, 64bit) - Dans la bataille'(In Battle)
                 # b'War Thunder (Vulkan, 64bit) - Essai du v\xc3\xa9hicule'(Test Drive)
+
     def hdg(dx, dy):
         """Fallback in case compass is missing from indicators panel"""
         dx *= longitude
@@ -485,6 +485,30 @@ def main_fun():
             #     print('finally')
             #     m.upload(f'{filename}.zip', folder[0])
 
+    def parse_clog():
+        if (latitude and longitude) is not None:
+            path_war_clogdir = game_logs_path[platform.system()]
+            temp = f"{str(path_war_clogdir)}/*.clog"
+            last_clog_fileis = max((glob.glob(temp)), key=os.path.getctime)
+            with open(last_clog_fileis, 'rb') as f:
+                xor_ed = f.read()
+                xor_ed_byte_array = bytearray(xor_ed)
+                un_xor_ed = un_xor(xor_ed_byte_array)
+
+                if config1.players_sys == "Linux":
+                    import cchardet as chardet
+                    result = chardet.detect(bytes(un_xor_ed))
+                    decode_type = result['encoding']
+                elif config1.players_sys == "Windows":
+                    decode_type = 'ANSI'
+                try:
+                    result = bytes(un_xor_ed).decode(decode_type)
+                except LookupError as parse_clog_lookup_error:
+                    print(f'ERROR 0x1D: {parse_clog_lookup_error}')
+                    sys.exit()
+                else:
+                    return result
+
     class State:
         class Client:
             player_obj = ""
@@ -495,7 +519,9 @@ def main_fun():
 
         class GameState:
             if platform.system() == "Windows":
+                print(war_lang)
                 if war_lang == "English":
+                    print(1)
                     TITLE_HANG = "War Thunder"
                     TITLE_LOAD = "War Thunder - Loading"
                     TITLE_BATT = "War Thunder - In battle"
@@ -503,6 +529,7 @@ def main_fun():
                     TITLE_TEST = "War Thunder - Test Flight"
                     TITLE_WAIT = "War Thunder - Waiting for game"
                 elif war_lang == "French":
+                    print(2)
                     TITLE_HANG = "War Thunder"
                     TITLE_LOAD = "War Thunder - Téléchargement en cours"
                     TITLE_BATT = "War Thunder - Dans la bataille"
@@ -511,14 +538,23 @@ def main_fun():
                     TITLE_WAIT = "War Thunder - En attente du jeu"
             elif platform.system() == "Linux":
                 if war_lang == "French":
+                    print(3)
                     TITLE_HANG = "War Thunder (Vulkan, 64bit)"
                     TITLE_LOAD = "War Thunder (Vulkan, 64bit) - Téléchargement en cours"
                     TITLE_BATT = "War Thunder (Vulkan, 64bit) - Dans la bataille"
                     TITLE_DRIV = "War Thunder (Vulkan, 64bit) - Test Drive"
                     TITLE_TEST = "War Thunder (Vulkan, 64bit) - Vol test"
                     TITLE_WAIT = "War Thunder (Vulkan, 64bit) - En attente du jeu"
-            # PLACEHOLDER = "War Thunder OpenGL"
-            # PLACEHOLDER = "War Thunder D3DX9"
+            # PLACEHOLDER = "OpenGL"
+            # PLACEHOLDER = "D3DX9"
+            else:
+                print(4)
+                TITLE_HANG = "War Thunder"
+                TITLE_LOAD = "War Thunder - Loading"
+                TITLE_BATT = "War Thunder - In battle"
+                TITLE_DRIV = "War Thunder - Test Drive"
+                TITLE_TEST = "War Thunder - Test Flight"
+                TITLE_WAIT = "War Thunder - Waiting for game"
 
         class Map:
             information = False
@@ -625,45 +661,20 @@ def main_fun():
                     map_area = ''
                 State.Map.information = True
 
-                if (latitude and longitude) is not None:
-                    path_war_clogdir = game_logs_path[platform.system()]
-                    temp = f"{str(path_war_clogdir)}/*.clog"
-                    last_clog_fileis = max((glob.glob(temp)), key=os.path.getctime)
-                    with open(last_clog_fileis, 'rb') as f:
-                        xored = f.read()
-                        xored_byte_array = bytearray(xored)
-                        unxored = un_xor(xored_byte_array)
+                decoding_result = parse_clog()
 
-                        if config1.players_sys == "Linux":
-                            import cchardet as chardet
-                            result = chardet.detect(bytes(unxored))
-                            decode_type = result['encoding']
-                        elif config1.players_sys == "Windows":
-                            decode_type = 'ANSI'
-                        try:
-                            decoding_result = bytes(unxored).decode(decode_type)
-                        except LookupError:
-                            print('IF THIS IS THE FIRST TIME RUNNING THUNDERTAC, '
-                                  'PLEASE JOIN & LEAVE A CUSTOM BATTLE, THEN RESTART')
-                            sys.exit()
+                split_lines = decoding_result.split('\n')
+                user_sesid = get_user_session_id(split_lines, _dict_sesid)[-1]
+                loguru.logger.debug(user_sesid)
+                users_team = get_users_team(split_lines, _list_teams, ttac_usr)[-1]
+                loguru.logger.debug(users_team)
 
-                        except LookupError as e:
-                            loguru.logger.error(f'XOR DECODING FAILED: {e}')
-                            os.system('PRESS ANY KEY TO EXIT')
-                            os.system('PAUSE>NUL')
+                mqtt_client.connect("tacserv.tk", 1883, 60, )
+                mqtt_client.loop_start()
 
-                    split_lines = decoding_result.split('\n')
-                    user_sesid = get_user_session_id(split_lines, _dict_sesid)[-1]
-                    loguru.logger.debug(user_sesid)
-                    users_team = get_users_team(split_lines, _list_teams, ttac_usr)[-1]
-                    loguru.logger.debug(users_team)
-
-                    mqtt_client.connect("tacserv.tk", 1883, 60, )
-                    mqtt_client.loop_start()
-
-                    # client.subscribe(f"TTAC/{user_sesid}/TIME_START")
-                    mqtt_client.publish(f'TTAC/{user_sesid}/players/{user_gid}',
-                                        f"{ttac_usr} is fighting for team {users_team}.", retain=True)
+                # client.subscribe(f"TTAC/{user_sesid}/TIME_START")
+                mqtt_client.publish(f'TTAC/{user_sesid}/players/{user_gid}',
+                                    f"{ttac_usr} is fighting for team {users_team}.", retain=True)
 
             if State.Recorder.start_recording:
                 if State.Map.information:
@@ -672,8 +683,6 @@ def main_fun():
                     State.Recorder.sortie_header = False
                     State.Recorder.active = True
 
-        else:
-            mission_category = None
 
         # RECORDING STATE: RECORDING
         while State.Recorder.active:
@@ -784,8 +793,8 @@ def main_fun():
 
                 if sta["valid"] and ind["valid"]:
                     z = sta["H, m"]
-                    ias = sta["IAS, km/h"] * convert_to_mps
-                    tas = sta["TAS, km/h"] * convert_to_mps
+                    ias = sta["IAS, km/h"] * 0.277778
+                    tas = sta["TAS, km/h"] * 0.277778
                     fuel_kg = sta["Mfuel, kg"]
                     fuel_vol = sta["Mfuel, kg"] / sta["Mfuel0, kg"]
                     m = sta["M"]
@@ -830,30 +839,26 @@ def main_fun():
                                     State.Recorder.once_per_spawn = False
                         except TypeError:
                             pass
-                        try:
-                            pedals = ind["pedals"]
-                        except KeyError:
-                            try:
-                                pedals = ind["pedals1"]
-                            except KeyError:
-                                pedals = None
 
-                        try:
-                            stick_ailerons = ind["stick_ailerons"]
-                        except KeyError:
-                            stick_ailerons = None
-                        try:
-                            stick_elevator = ind["stick_elevator"]
-                        except KeyError:
-                            stick_elevator = None
-
-                        try:
-                            h = hdg(player["dx"], player["dy"])
-                        except KeyError:
+                        def try_er(retrieve_from, alternative=None):
                             try:
-                                h = ind["compass"]
+                                retrieve_from
                             except KeyError:
-                                h = ind["compass1"]
+                                alternative = alternative
+                            else:
+                                return retrieve_from
+                            finally:
+                                return alternative
+
+                        pedals = ind['pedals1']
+                        stick_ailerons = ind["stick_ailerons"]
+                        stick_elevator = ind["stick_elevator"]
+                        h = hdg(player["dx"], player["dy"])
+
+                        # pedals = try_er(ind['pedals1'])
+                        # stick_ailerons = try_er(ind["stick_ailerons"])
+                        # stick_elevator = try_er(ind["stick_elevator"])
+                        # h = try_er(hdg(player["dx"], player["dy"]))
 
                         fname, lname, sname = None, None, None
                         if not State.Recorder.once_per_spawn:

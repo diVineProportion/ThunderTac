@@ -170,7 +170,6 @@ class CFG:
             version_file = self.game_install_path.joinpath('content/pkg_main.ver')
             with open(version_file, "r") as frv:
                 self.game_version = frv.read()
-                # self.loguru.logger.log("PILOT", f"{self.game_version}")
                 return self.game_version
 
     def get_user_alias(self):
@@ -214,6 +213,8 @@ class CFG:
             result = 'ANSI'
         try:
             text_curr = bytes(un_xor_ed).decode(result)
+            # with open('unxored', 'w', encoding='utf-8') as f:
+            #     f.write(text_curr)
             xxx = re.search(r"(\w+)\[(\d+)] successfully passed yuplay authorization", text_curr, re.M)
             if xxx:
                 print(xxx.groups())
