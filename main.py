@@ -3,7 +3,8 @@ user_sesid = ''
 map_area = None
 mission_category = None
 
-
+import snoop
+@snoop
 def main_fun():
     global user_sesid
     global map_area
@@ -232,40 +233,35 @@ def main_fun():
                 "wait": "En attente du jeu"
             }
         }
-        render_engine = None
+
         if config1.players_sys == "Darwin":
             pass
         elif config1.players_sys == "Linux":
-            render_engine = " (Vulkan, 64bit)"
+            render_engine = "(Vulkan, 64bit)"
         elif config1.players_sys == "Windows":
             render_engine = ''
 
+        base = 'War Thunder'
 
-        base = f"War Thunder{render_engine}"
-        title_hang = f"{base}"
-        title_load = f"{base} - {lang_dict[war_lang]['load']}"
-        title_batt = f"{base} - {lang_dict[war_lang]['batt']}"
-        title_driv = f"{base} - {lang_dict[war_lang]['driv']}"
-        title_test = f"{base} - {lang_dict[war_lang]['test']}"
-        title_wait = f"{base} - {lang_dict[war_lang]['wait']}"
+        if render_engine != '':
+            base = f'{base} {render_engine}'
 
-        if platform.system() == "Windows":
-            from win32gui import FindWindowEx
-            list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test]
-            for window_title in list_window_titles:
-                window_handle = FindWindowEx(None, None, None, window_title)
-                if not (window_handle == 0):
-                    return window_title
+        title_hang = f'{base}'
+        title_load = f'{base} - {lang_dict[war_lang]["load"]}'
+        title_batt = f'{base} - {lang_dict[war_lang]["batt"]}'
+        title_driv = f'{base} - {lang_dict[war_lang]["driv"]}'
+        title_test = f'{base} - {lang_dict[war_lang]["test"]}'
+        title_wait = f'{base} - {lang_dict[war_lang]["wait"]}'
 
-        elif platform.system() == "Linux":
+        if platform.system() == "Linux":
             import ewmh
             window_manager = ewmh.EWMH()
-            title_hang = bytes(title_hang, "utf-8")
-            title_load = bytes(title_load, "utf-8")
-            title_batt = bytes(title_batt, "utf-8")
-            title_driv = bytes(title_driv, "utf-8")
-            title_test = bytes(title_test, "utf-8")
-            title_wait = bytes(title_wait, "utf-8")
+            title_hang = bytes(title_hang, 'utf-8')
+            title_load = bytes(title_load, 'utf-8')
+            title_batt = bytes(title_batt, 'utf-8')
+            title_driv = bytes(title_driv, 'utf-8')
+            title_test = bytes(title_test, 'utf-8')
+            title_wait = bytes(title_wait, 'utf-8')
             list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test]
             try:
                 client_list = window_manager.getClientList()
@@ -299,8 +295,17 @@ def main_fun():
                 # b'War Thunder (Vulkan, 64bit)'
                 # b'War Thunder (Vulkan, 64bit) - Vol test'(Test Flight)
                 # b'War Thunder (Vulkan, 64bit) - T\xc3\xa9l\xc3\xa9chargement en cours'(Loading)
-                # b'War Thunder (Vulkan, 64bit) - Dans la bataille'(In Battle)
                 # b'War Thunder (Vulkan, 64bit) - Essai du v\xc3\xa9hicule'(Test Drive)
+                # b'War Thunder (Vulkan, 64bit) - Dans la bataille'(In Battle)
+
+        elif platform.system() == "Windows":
+            from win32gui import FindWindowEx
+            list_window_titles = [title_hang, title_wait, title_batt, title_load, title_driv, title_test]
+            for window_title in list_window_titles:
+                window_handle = FindWindowEx(None, None, None, window_title)
+                if not (window_handle == 0):
+                    return window_title
+
 
     def hdg(dx, dy):
         """Fallback in case compass is missing from indicators panel"""
@@ -537,18 +542,23 @@ def main_fun():
                     TITLE_TEST = "War Thunder - Vol test"
                     TITLE_WAIT = "War Thunder - En attente du jeu"
             elif platform.system() == "Linux":
-                if war_lang == "French":
+                if war_lang == "English":
                     print(3)
+                    TITLE_HANG = b"War Thunder (Vulkan, 64bit)"
+                    TITLE_LOAD = b"War Thunder (Vulkan, 64bit) - Loading"
+                    TITLE_BATT = b"War Thunder (Vulkan, 64bit) - In battle"
+                    TITLE_DRIV = b"War Thunder (Vulkan, 64bit) - Test Drive"
+                    TITLE_TEST = b"War Thunder (Vulkan, 64bit) - Test Flight"
+                    TITLE_WAIT = b"War Thunder (Vulkan, 64bit) - Waiting for game"
+                elif war_lang == "French":
+                    print(4)
                     TITLE_HANG = "War Thunder (Vulkan, 64bit)"
                     TITLE_LOAD = "War Thunder (Vulkan, 64bit) - Téléchargement en cours"
                     TITLE_BATT = "War Thunder (Vulkan, 64bit) - Dans la bataille"
                     TITLE_DRIV = "War Thunder (Vulkan, 64bit) - Test Drive"
                     TITLE_TEST = "War Thunder (Vulkan, 64bit) - Vol test"
                     TITLE_WAIT = "War Thunder (Vulkan, 64bit) - En attente du jeu"
-            # PLACEHOLDER = "OpenGL"
-            # PLACEHOLDER = "D3DX9"
             else:
-                print(4)
                 TITLE_HANG = "War Thunder"
                 TITLE_LOAD = "War Thunder - Loading"
                 TITLE_BATT = "War Thunder - In battle"
@@ -615,6 +625,8 @@ def main_fun():
     mqtt_client.on_message = on_message
     mqtt_client.on_subscribe = on_subscribe
 
+    state = State.GameState
+
     while True:
 
         # SIGINT: INIT
@@ -624,7 +636,7 @@ def main_fun():
         curr_game_state = get_window_title()
 
         # PROGRAM STATE: IN HANGAR
-        if curr_game_state == State.GameState.TITLE_HANG:
+        if curr_game_state == state.TITLE_HANG:
 
             # STDOUT: RETURNED TO HANGAR
             if not State.Messages.hangar:
