@@ -15,7 +15,7 @@ from requests import get
 from requests.exceptions import ReadTimeout, ConnectTimeout
 from xmltodict import unparse
 
-from cfg import API
+from config import API
 
 WebAPI = API()
 

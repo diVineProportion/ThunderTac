@@ -1,10 +1,11 @@
-
 user_sesid = ''
 map_area = None
 mission_category = None
 
-import snoop
-@snoop
+
+# import snoop
+# @snoop
+
 def main_fun():
     global user_sesid
     global map_area
@@ -44,34 +45,33 @@ def main_fun():
     # from mega import Mega
     # from requests.exceptions import RequestException
 
+    import arguments
     import map_info
+    import config
 
-    # windows = linux = darwin = False
+    configuration = config.CFG()
 
-    import cfg
-    config1 = cfg.CFG()
-
-    net_host = config1.cfg_net['net_host']
-    net_port = config1.cfg_net['net_port']
-    ttac_usr = config1.cfg_gen['ttac_usr']
-    # ttac_mas = config1.cfg_gen['ttac_mas']
-    # ttac_rec = config1.cfg_gen['ttac_rec']
-    # ttac_int = config1.cfg_gen['ttac_int']
-    user_gid = config1.cfg_gen['user_gid']
-    # war_lang = config1.cfg_gen['war_lang']
-    war_lang = config1.i18n[:-1].replace('"', '')
-    # logger_l = config1.cfg_log['logger_l']
-    # debug_on = config1.cfg_dbg['debug_on']
-    ftp_send = config1.cfg_ftp['ftp_send']
-    ftp_addr = config1.cfg_ftp['ftp_addr']
-    ftp_user = config1.cfg_ftp['ftp_user']
-    ftp_pass = config1.cfg_ftp['ftp_pass']
-    # init_run = config1.cfg_cfg['init_run']
-    war_path = config1.cfg_dir['war_path']
-    cfg_root = config1.cfg_dir['cfg_root']
+    net_host = configuration.cfg_net['net_host']
+    net_port = configuration.cfg_net['net_port']
+    ttac_usr = configuration.cfg_gen['ttac_usr']
+    # ttac_mas = configuration.cfg_gen['ttac_mas']
+    # ttac_rec = configuration.cfg_gen['ttac_rec']
+    # ttac_int = configuration.cfg_gen['ttac_int']
+    user_gid = configuration.cfg_gen['user_gid']
+    # war_lang = configuration.cfg_gen['war_lang']
+    war_lang = configuration.i18n[:-1].replace('"', '')
+    # logger_l = configuration.cfg_log['logger_l']
+    # debug_on = configuration.cfg_dbg['debug_on']
+    ftp_send = configuration.cfg_ftp['ftp_send']
+    ftp_addr = configuration.cfg_ftp['ftp_addr']
+    ftp_user = configuration.cfg_ftp['ftp_user']
+    ftp_pass = configuration.cfg_ftp['ftp_pass']
+    # init_run = configuration.cfg_cfg['init_run']
+    war_path = configuration.cfg_dir['war_path']
+    cfg_root = configuration.cfg_dir['cfg_root']
 
     cp = configparser.ConfigParser()
-    cp.read(config1.tacx_settings_file)
+    cp.read(configuration.tacx_settings_file)
     # init_run = cp['configinit'].getboolean('init_run')
     # debug_on = cp['debug'].getboolean('debug_on')
 
@@ -234,11 +234,11 @@ def main_fun():
             }
         }
 
-        if config1.players_sys == "Darwin":
+        if configuration.players_sys == "Darwin":
             pass
-        elif config1.players_sys == "Linux":
+        elif configuration.players_sys == "Linux":
             render_engine = "(Vulkan, 64bit)"
-        elif config1.players_sys == "Windows":
+        elif configuration.players_sys == "Windows":
             render_engine = ''
 
         base = 'War Thunder'
@@ -306,7 +306,6 @@ def main_fun():
                 if not (window_handle == 0):
                     return window_title
 
-
     def hdg(dx, dy):
         """Fallback in case compass is missing from indicators panel"""
         dx *= longitude
@@ -315,7 +314,7 @@ def main_fun():
 
     def insert_header(region, ref_time, alias, session_id='', category='', ttac_ver='0.0.0'):
 
-        comment_string = f"War Thunder v{str(config1.get_game_version())}\\, " \
+        comment_string = f"War Thunder v{str(configuration.get_game_version())}\\, " \
                          f"Thunder Tac v{ttac_ver}\\, " \
                          f"Session ID: {session_id}" \
                          f"\n"
@@ -372,7 +371,7 @@ def main_fun():
             wt_units_data = requests.get(wt_units_host).json()
             wt_units_version = wt_units_data['version']
             loguru.logger.info(f"[A] UNITS LIBRARY: War Thunder v'{wt_units_version}' Loaded")
-            wt_game_version = config1.get_game_version()
+            wt_game_version = configuration.get_game_version()
             if wt_game_version != wt_units_version:
                 # g_major, g_minor, g_subminor, g_patch = wt_game_version.split('.')
                 # v_major, v_minor, v_subminor, v_patch = wt_units_version.split('.')
@@ -500,11 +499,11 @@ def main_fun():
                 xor_ed_byte_array = bytearray(xor_ed)
                 un_xor_ed = un_xor(xor_ed_byte_array)
 
-                if config1.players_sys == "Linux":
+                if configuration.players_sys == "Linux":
                     import cchardet as chardet
                     result = chardet.detect(bytes(un_xor_ed))
                     decode_type = result['encoding']
-                elif config1.players_sys == "Windows":
+                elif configuration.players_sys == "Windows":
                     decode_type = 'ANSI'
                 try:
                     result = bytes(un_xor_ed).decode(decode_type)
@@ -604,7 +603,7 @@ def main_fun():
     time_start = time.time()
 
     if ttac_usr is None or ttac_usr == '':
-        config1.get_user_alias()
+        configuration.get_user_alias()
 
     game_logs_path = {
         'Linux': pathlib.Path(cfg_root).joinpath('.game_logs/'),
@@ -694,7 +693,6 @@ def main_fun():
                     loguru.logger.info("[R] RECORD ACTIVE:" + str(time_rec_start))
                     State.Recorder.sortie_header = False
                     State.Recorder.active = True
-
 
         # RECORDING STATE: RECORDING
         while State.Recorder.active:
@@ -911,9 +909,9 @@ def main_fun():
                                 + f"FuelVolume={fuel_vol},"
                                 + f"LandingGear={gear},"
                                 + f"Flaps={flaps},"
-                                # + "PilotHeadRoll={},".format(PilotHeadRoll)
-                                # + "PilotHeadPitch={},".format(PilotHeadPitch)
-                                # + "PilotHeadYaw={},".format(PilotHeadYaw)
+                            # + "PilotHeadRoll={},".format(PilotHeadRoll)
+                            # + "PilotHeadPitch={},".format(PilotHeadPitch)
+                            # + "PilotHeadYaw={},".format(PilotHeadYaw)
                         )
                         # APPEND TO .ACMI ONLY ONCE PER SPAWN
                         sortie_subheader = (f"Slot={'0'}," +
@@ -957,6 +955,8 @@ def main_fun():
 
 
 if __name__ == "__main__":
+    from client_config import ClientConfig
+    print(ClientConfig.APP_VERSION)
     main_fun()
 
 # try:
