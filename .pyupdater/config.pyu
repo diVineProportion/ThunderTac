@@ -1,23 +1,22 @@
 {
-  "config_dir": "C:\\ThunderTacX\\.pyupdater",
-  "filename": "C:\\ThunderTacX\\.pyupdater\\config.pyu",
+  "config_dir": "C:\\ThunderTac\\.pyupdater",
+  "filename": "C:\\ThunderTac\\.pyupdater\\config.pyu",
   "count": 0,
   "app_config": {
     "APP_NAME": "ThunderTac",
     "CLIENT_CONFIG_PATH": [
+      "src/thundertac/pyupdater",
       "client_config.py"
     ],
-    "COMPANY_NAME": "WTApps",
+    "COMPANY_NAME": "ThunderApps",
     "PLUGIN_CONFIGS": {},
     "UPDATE_PATCHES": true,
     "MAX_DOWNLOAD_RETRIES": 3,
     "HTTP_TIMEOUT": 30,
     "UPDATE_URLS": [
-      "https://github.com/diVineProportion/pyutest/raw/main/",
-      "https://github.com/diVineProportion/pyutest/blob/main/",
-      "https://raw.githubusercontent.com/diVineProportion/pyutest/main/"
+      "http://www.google.com"
     ],
-    "DATA_DIR": "C:\\ThunderTacX"
+    "DATA_DIR": "C:\\ThunderTac"
   },
   "keypack": {
     "client": {
@@ -29,96 +28,6 @@
     "upload": {
       "app_public": "XdqgXd89BpV0txJNYUxjpuLzvNVpQU4z0ihg/brAr1g",
       "signature": "SKe65tCC9d6NXFPkEZlRny7tcL4PTP0GCagaymv+bnqEdrNx6aKE3IOQqsrrk5UndjjzfBrzjdNO15o+OeePDQ"
-    }
-  },
-  "version_meta": {
-    "updates": {
-      "ThunderTac": {
-        "3.0.0.0.0": {
-          "win": {
-            "file_hash": "5e36f6c974d469cc1205dba7de6fb445dc9549fdd48b3f0b1507b05ff7ec76ba",
-            "file_size": 44977959,
-            "filename": "ThunderTac-win-3.0.0a0.zip"
-          }
-        },
-        "3.0.0.0.1": {
-          "win": {
-            "file_hash": "028266bf5b562d2e02178c6891a06ae7bb9ebbe5abd5753a73c0e494786455a3",
-            "file_size": 45095649,
-            "filename": "ThunderTac-win-3.0.0a1.zip",
-            "patch_name": "ThunderTac-win-alpha-2",
-            "patch_hash": "8983f959899b2ebec5af79c51defff8bc035c5e82a62f125a6d7530733ff8f7c",
-            "patch_size": 606816
-          }
-        },
-        "3.0.0.0.3": {
-          "win": {
-            "file_hash": "af1bd368fba58f82157fcf3f8b527b801a1843989bd71d871f63a92e6261d733",
-            "file_size": 45095681,
-            "filename": "ThunderTac-win-3.0.0a3.zip",
-            "patch_name": "ThunderTac-win-alpha-3",
-            "patch_hash": "b38a4f9b127bc9faf6a8ae7df2d79d0180335cb50222992d0a7aa7da10f34bb9",
-            "patch_size": 12706759
-          }
-        },
-        "4.0.0.2.0": {
-          "win": {
-            "file_hash": "a39fff28f0916955bf6ad32a1e0e5308cfabad4a79e6219838ae700b07b27060",
-            "file_size": 45095681,
-            "filename": "ThunderTac-win-4.0.0.zip"
-          }
-        },
-        "4.0.1.2.0": {
-          "win": {
-            "file_hash": "86bb0d6363a7ca60e647e3dcb20bc0efa2c3433d6037d8676cd320f5ffb31019",
-            "file_size": 45095691,
-            "filename": "ThunderTac-win-4.0.1.zip",
-            "patch_name": "ThunderTac-win-stable-4",
-            "patch_hash": "094f59a080f58f31ec1bc791ad7440fdb2ddb139647b13787e44e67ea5a438d2",
-            "patch_size": 252948
-          }
-        },
-        "4.0.2.2.0": {
-          "win": {
-            "file_hash": "e3d6674922bae6fb368b313cb98991c09cb66a314968b25e250f7529a495182c",
-            "file_size": 45095689,
-            "filename": "ThunderTac-win-4.0.2.zip",
-            "patch_name": "ThunderTac-win-stable-5",
-            "patch_hash": "5639ca484cf392d2dcae4fdc689ff15acb939a9ea137467c07169f4c53693a4d",
-            "patch_size": 327309
-          }
-        },
-        "4.0.3.2.0": {
-          "win": {
-            "file_hash": "b2bd5650a7efabaeefd1493a551dbb84f70c733655770a5bf9d335df3e542be0",
-            "file_size": 45095682,
-            "filename": "ThunderTac-win-4.0.3.zip",
-            "patch_name": "ThunderTac-win-stable-6",
-            "patch_hash": "586df3e7c72aab1a3d7e67da627aeca57e2468bc0f77d2ba8299d65361cb24f8",
-            "patch_size": 310749
-          }
-        }
-      }
-    },
-    "latest": {
-      "ThunderTac": {
-        "alpha": {
-          "win": "3.0.0.0.3"
-        },
-        "stable": {
-          "win": "4.0.3.2.0"
-        }
-      }
-    }
-  },
-  "py_repo_config": {
-    "patches": {
-      "ThunderTac": 6
-    },
-    "package": {
-      "ThunderTac": {
-        "win": "4.0.3.2.0"
-      }
     }
   }
 }
