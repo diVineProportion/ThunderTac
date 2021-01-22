@@ -1,2 +1,7 @@
 /ACMI/
-../keypack.pyu
+/__pycache__/
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/ThunderTacX2.iml
+/.idea/vcs.xml
