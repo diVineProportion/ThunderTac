@@ -364,7 +364,7 @@ def main_fun():
     def get_unit():
         wt_units_lookup = None
         try:
-            with open('wtunits.json', 'r', encoding='utf-8') as fo:
+            with open('resources/wtunits.json', 'r', encoding='utf-8') as fo:
                 wt_units_lookup = json.loads(fo.read())
         except FileNotFoundError:
             wt_units_host = 'https://raw.githubusercontent.com/diVineProportion/ThunderTac/ThunderTacX/wtunits.json'
