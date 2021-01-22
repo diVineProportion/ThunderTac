@@ -33,9 +33,9 @@ if __name__ == "__main__":
                    'https://github.com/diVineProportion/pyutest/blob/main/',
                    'https://raw.githubusercontent.com/diVineProportion/pyutest/main/']'''
 
-    with open('client_config.py', 'w') as f:
+    with open('pyu_config.py', 'w') as f:
         f.write(client_write)
-    with open('__init__.py', 'w') as f:
+    with open('../../__init__.py', 'w') as f:
         f.write(f'__version__ = "{client_version}"')
 
     # if channel == ("0" or ""):

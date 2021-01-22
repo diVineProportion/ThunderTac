@@ -7,7 +7,7 @@ from pyupdater.client import Client
 from __init__ import __version__
 
 from config import CFG
-from client_config import ClientConfig
+from pyu_config import ClientConfig
 
 
 def print_status_info(info):

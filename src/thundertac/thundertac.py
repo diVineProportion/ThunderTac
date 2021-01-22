@@ -45,7 +45,6 @@ def main_fun():
     # from mega import Mega
     # from requests.exceptions import RequestException
 
-    import arguments
     import map_info
     import config
 
@@ -955,7 +954,7 @@ def main_fun():
 
 
 if __name__ == "__main__":
-    from client_config import ClientConfig
+    from pyu_config import ClientConfig
     print(ClientConfig.APP_VERSION)
     main_fun()
 

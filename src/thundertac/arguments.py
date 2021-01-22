@@ -2,7 +2,7 @@ import argparse
 import os
 import subprocess
 import sys
-import main
+import thundertac
 
 
 keyVal = 'Console'
@@ -19,7 +19,7 @@ args, unknown = parser.parse_known_args()
 
 
 if not args.bypass:
-    import updates
+    import pyu_updates
 
 if args.config:
     import ascii_config
