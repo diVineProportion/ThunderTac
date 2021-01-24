@@ -15,7 +15,7 @@ from requests import get
 from requests.exceptions import ReadTimeout, ConnectTimeout
 from xmltodict import unparse
 
-from config import API
+from config import API, CFG
 
 WebAPI = API()
 
@@ -235,21 +235,25 @@ def latlon2meters(lat1, lon1, lat2, lon2):
 
 
 def main_def():
-    global map_info_path
+    global textures_path
     while True:
         try:
-            urllib.request.urlretrieve(WebAPI.LMAP, 'map.jpg')
+            # urllib.request.urlretrieve(WebAPI.LMAP, 'map.jpg')
+            with open('map.img', 'wb') as f:
+                map_img = get(WebAPI.LMAP, timeout=0.02)
+                f.write(map_img.content)
+                loguru.logger.debug('[INFO] Map stored in memory')
             map_obj = get(WebAPI.OBJT, timeout=0.02).json()
             inf_req = get(WebAPI.INFO, timeout=0.02).json()
             break
         except json.decoder.JSONDecodeError:
-            pass
+            print('json.decoder.JSONDecodeError')
         except (ReadTimeout, ConnectTimeout):
-            pass
+            print('ReadTimeout, ConnectTimeout')
         except simplejson.errors.JSONDecodeError:
-            pass
+            print('simplejson.errors.JSONDecodeError')
 
-    image = Image.open('map.jpg')
+    image = Image.open('map.img')
     image_draw = ImageDraw.Draw(image)
 
     map_max = inf_req['map_max']
@@ -392,23 +396,23 @@ def main_def():
     tex_insert['Resources']['CustomTextureList']['CustomTexture']['TopRight']['Longitude'] = str(tr_lon)
     tex_insert['Resources']['CustomTextureList']['CustomTexture']['TopRight']['Latitude'] = str(tr_lat)
 
-    # TODO: check for existing .xml and append rather than overwrite
+    configuration = CFG()
+
     if platform.system() == "Windows":
-        map_info_path = os.path.join(os.environ['APPDATA'], "Tacview\\Data\\Terrain\\Textures")
+        textures_path = configuration.tacv_textures_root
+        if not os.path.exists(textures_path):
+            os.makedirs(textures_path)
+        with open(textures_path + '\\CustomTextureList.xml', 'w') as fw:
+            fw.write(unparse(tex_insert, pretty=True))
+
+        final_path = f"{textures_path}\\{map_name}.jpg"
+        if os.path.exists(final_path):
+            os.remove(final_path)
+        if os.path.exists(textures_path):
+            image.save(final_path)
+
     elif platform.system() == "Linux":
-        map_info_path = "/home/divine/Programs/Tacview (beta)/Data/Terrain/Textures/"
-
-    if not os.path.exists(map_info_path):
-        os.makedirs(map_info_path)
-    with open(map_info_path + '\\CustomTextureList.xml', 'w') as fw:
-        fw.write(unparse(tex_insert, pretty=True))
-
-    final_path = f"{map_info_path}\\{map_name}.jpg"
-    if os.path.exists(final_path):
-        os.remove(final_path)
-    if os.path.exists(map_info_path):
-        image.save(final_path)
-
+        pass
 
 def get_data():
     inf_req = get(WebAPI.INFO, timeout=(0.02, 1)).json()
@@ -439,12 +443,21 @@ def get_info(show=False):
     """
 
     global map_info_match
-    r = requests.get(WebAPI.LMAP, stream=True)
-    r.raise_for_status()
-    r.raw.decode_content = True
-    with PIL.Image.open(r.raw) as img:
+    # r = requests.get(WebAPI.LMAP, stream=True)
+    # r.raise_for_status()
+    # r.raw.decode_content = True
+    # with PIL.Image.open(r.raw) as img:
+    #     img.save('map.jpg')
+    # r.close()
+
+    # urllib.request.urlretrieve(WebAPI.LMAP, 'map.jpg')
+
+    with open('map.img', 'wb') as f:
+        map_img = get(WebAPI.LMAP, timeout=(0.02, 1))
+        f.write(map_img.content)
+
+    with PIL.Image.open('map.img') as img:
         img.save('map.jpg')
-    r.close()
 
     _dict = {}
     percent_match = None
@@ -488,7 +501,7 @@ def get_info(show=False):
 if __name__ == '__main__':
     map_info_row = None
     map_info_col = None
-    map_info_path = None
+    textures_path = None
     map_info_match = None
     # try:
     #     main_def()

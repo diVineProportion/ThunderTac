@@ -1,9 +1,5 @@
 import argparse
-import os
-import subprocess
 import sys
-import thundertac
-
 
 keyVal = 'Console'
 
@@ -19,10 +15,9 @@ args, unknown = parser.parse_known_args()
 
 
 if not args.bypass:
-    import pyu_updates
+    pass
 
 if args.config:
-    import ascii_config
     sys.exit(0)
 
 if args.debug:

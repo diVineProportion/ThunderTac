@@ -1,20 +1,21 @@
 import sys
-
 from pprint import pprint
 
 from pyupdater.client import Client
+from tqdm import tqdm
 
 from __init__ import __version__
-
 from config import CFG
-from pyu_config import ClientConfig
+from client_config import ClientConfig
 
 
 def print_status_info(info):
     total = info.get(u'total')
     downloaded = info.get(u'downloaded')
     status = info.get(u'status')
-    print(downloaded, total, status)
+    with tqdm(total=total) as progress_bar:
+        progress_bar.update(downloaded)
+    # print(downloaded, total, status)
 
 
 def initialization(_channel, _preferred_channel, _is_strict):
@@ -80,18 +81,21 @@ channel = get_clients_channel()
 if __name__ == "updates":
 
     if getattr(sys, 'frozen', False):
+        print('a1')
         preferred_channel, is_strict = get_clients_channel()
         app_update = initialization(channel, preferred_channel, is_strict)
         update_check(app_update)
         perform_update(app_update)
 
     elif __file__:
+        print('a1')
         # FIXME: BROKEN
         preferred_channel, is_strict = get_clients_channel()
         app_update = initialization(channel, preferred_channel, is_strict)
         update_check(app_update)
 
 elif __name__ == "__main__":
+    print('b1')
     preferred_channel, is_strict = get_clients_channel()
     app_update = initialization(channel, preferred_channel, is_strict)
     update_check(app_update)

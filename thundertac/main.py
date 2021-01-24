@@ -1,11 +1,14 @@
+from typing import Optional, Any
+
+import __init__
+
 user_sesid = ''
 map_area = None
 mission_category = None
-
-
+#
 # import snoop
-# @snoop
-
+#
+# @snoop(depth=3)
 def main_fun():
     global user_sesid
     global map_area
@@ -66,19 +69,22 @@ def main_fun():
     ftp_user = configuration.cfg_ftp['ftp_user']
     ftp_pass = configuration.cfg_ftp['ftp_pass']
     # init_run = configuration.cfg_cfg['init_run']
-    war_path = configuration.cfg_dir['war_path']
+    war_root = configuration.cfg_dir['war_root']
     cfg_root = configuration.cfg_dir['cfg_root']
+    tex_root = configuration.cfg_dir['tex_root']
+    rec_root = configuration.cfg_dir['rec_root']
 
     cp = configparser.ConfigParser()
-    cp.read(configuration.tacx_settings_file)
+    cp.read(configuration.user_settings_file)
     # init_run = cp['configinit'].getboolean('init_run')
     # debug_on = cp['debug'].getboolean('debug_on')
 
     # loguru.logger.remove()
     # loguru.logger.add(sys.stderr, level=logger_l)
 
+
     # TODO: CLEAN THIS GARBAGE UP
-    filename = ""
+    init_alt = 0
     users_team = "0"
     time_rec_start = None
     # rec_start_mode_gamechat = True
@@ -194,6 +200,13 @@ def main_fun():
 
     def set_filename():
         """maintain file structure by reading localization information"""
+        pathlib.Path(rec_root).mkdir(mode=0o777, parents=True, exist_ok=True)
+        sdate, stime = (str(arrow.utcnow())[:-13]).replace(":", ".").split("T")
+        # ldate, ltime = (str(arrow.now())[:-13]).replace(":", ".").split("T")
+        return pathlib.Path(user_sesid).joinpath(f'{sdate}_{stime}_{ttac_usr}.acmi')
+
+    def set_filename():
+        """maintain file structure by reading localization information"""
         acmi_folder_path = pathlib.Path(f'./ACMI/{user_sesid}')
         if not acmi_folder_path.is_dir():
             acmi_folder_path.mkdir(mode=0o777, parents=True, exist_ok=False)
@@ -269,7 +282,8 @@ def main_fun():
                         window_title_from_window_id = window_manager.getWmName(window)
                         return window_title_from_window_id
             except Exception as err_ewmh:
-                print(err_ewmh)
+                pass
+                # print(err_ewmh)
 
                 #     title_hang = b'War Thunder (Vulkan, 64bit)'
                 #     title_load = b'War Thunder (Vulkan, 64bit) - Loading'
@@ -311,9 +325,9 @@ def main_fun():
         dy *= latitude
         return int(180 - (180 / math.pi) * math.atan2(dx, dy))
 
-    def insert_header(region, ref_time, alias, session_id='', category='', ttac_ver='0.0.0'):
+    def insert_header(region, version, ref_time, alias, session_id='', category='', ttac_ver='0.0.0'):
 
-        comment_string = f"War Thunder v{str(configuration.get_game_version())}\\, " \
+        comment_string = f"War Thunder v{str(version)}\\, " \
                          f"Thunder Tac v{ttac_ver}\\, " \
                          f"Session ID: {session_id}" \
                          f"\n"
@@ -336,7 +350,10 @@ def main_fun():
             f"0,ReferenceLongitude={'0'}\n"
             f"0,ReferenceLatitude={'0'}\n"
         )
-
+        # if not file_name.parent.is_dir():
+        #     file_name.parent.mkdir(mode=0o777, parents=True, exist_ok=True)
+        # with open(file_name, "w", newline="") as f_a_acmi_header:
+        #     f_a_acmi_header.write(acmi_header)
         with open(filename, "a", newline="") as f_a_acmi_header:
             f_a_acmi_header.write(acmi_header)
 
@@ -360,33 +377,57 @@ def main_fun():
     #     except (IndexError, requests.exceptions.ReadTimeout) as err_get_hud_msg:
     #         loguru.logger.debug(err_get_hud_msg)
 
+    import urllib.request as r
+
+    from tqdm.auto import tqdm
+
+    def my_hook(t):
+
+        last_b = [0]
+
+        def update_to(b=1, bsize=1, tsize=None):
+            if tsize not in (None, -1):
+                t.total = tsize
+            displayed = t.update((b - last_b[0]) * bsize)
+            last_b[0] = b
+            return displayed
+
+        return update_to
+
     def get_unit():
+
+        def retrieve_wtunits():
+            with tqdm() as t:
+                reporthook = my_hook(t)
+                r.urlretrieve(url=wt_units_host, filename=configuration.user_units_file, reporthook=reporthook)
+                loguru.logger.debug('wtunits.json downloaded')
+
         wt_units_lookup = None
-        try:
-            with open('resources/wtunits.json', 'r', encoding='utf-8') as fo:
-                wt_units_lookup = json.loads(fo.read())
-        except FileNotFoundError:
-            wt_units_host = 'https://raw.githubusercontent.com/diVineProportion/ThunderTac/ThunderTacX/wtunits.json'
-            wt_units_data = requests.get(wt_units_host).json()
-            wt_units_version = wt_units_data['version']
-            loguru.logger.info(f"[A] UNITS LIBRARY: War Thunder v'{wt_units_version}' Loaded")
-            wt_game_version = configuration.get_game_version()
-            if wt_game_version != wt_units_version:
-                # g_major, g_minor, g_subminor, g_patch = wt_game_version.split('.')
-                # v_major, v_minor, v_subminor, v_patch = wt_units_version.split('.')
-                # if v_major != g_major:
-                #     loguru.logger.debug(f'[A] VER. MISMATCH:
-                #     if v_minor != g_minor:
-                #         loguru.logger.debug(f'[A] VER. MISMATCH:
-                #         if v_subminor != g_subminor:
-                #             loguru.logger.debug(f'[A] VER. MISMATCH:
-                #             if v_patch != g_patch:
-                #                 loguru.logger.debug(f'[A] VER. MISMATCH:
-                #
-                loguru.logger.debug(
-                    f'[A] VER. MISMATCH: unit_library=v"{wt_units_version}" | game_library=v"{wt_game_version}"')
-        finally:
-            return wt_units_lookup
+        wt_units_host = 'https://raw.githubusercontent.com/diVineProportion/ThunderTac/' \
+                        'ThunderTacX/resources/wtunits.json'
+
+        configuration.user_units_file = configuration.user_settings_root.joinpath('wtunits.json')
+        # if wtunits.json (local) does not exist, retrieve it
+        if not configuration.user_units_file.exists():
+            retrieve_wtunits()
+
+        # TODO: finish remote to local wtunits.json sync
+        # # with wtunits.json, get the version of wtunits.json
+        with open(configuration.user_units_file, 'r', encoding='utf-8') as fo:
+            wt_units_lookup = json.loads(fo.read())
+        #     local_wt_units_version = wt_units_lookup['version']
+        #     # and compare it to aces.exe version and if they differ
+        #     if aces_version != local_wt_units_version:
+        #         # fetch the remote version of wtunits.json
+        #         remote_wt_units_version = requests.get(wt_units_host).json()['version']
+        #         # and compare to local wtunits.json
+        #         # TODO: replace pseudo code
+        #         # if wtunits.json (remote) version > wtunits.json (local) version, download remote version
+
+        wt_units_data = requests.get(wt_units_host).json()
+        wt_units_version = wt_units_data['version']
+
+        return wt_units_lookup
 
     def nxt_sort():
         if State.Client.player_obj:
@@ -406,14 +447,7 @@ def main_fun():
         acmi2ftp()
 
     def handler(signal_received, frame):
-        State.Map.information = False
-        State.Recorder.active = False
-        State.Messages.hangar = False
-        State.Recorder.header_placed = False
-        acmi2zip()
-        # acmi2ftp()
-        print(f'SIGINT {signal_received} from frame {frame} (or CTRL-C) detected. Exiting gracefully')
-        sys.exit(0)
+        sys.exit(signal_received)
 
     def area_init():
         map_info.main_def()
@@ -438,6 +472,7 @@ def main_fun():
                 mode_name = modes[compression]
                 loguru.logger.debug(f'Adding "{filename}" to "{filename}.zip" using mode "{mode_name}"')
                 fo.write(f'{filename}', compress_type=compression)
+
 
     def acmi2ftp():
         pathlib_file_object = pathlib.Path(filename)
@@ -469,7 +504,6 @@ def main_fun():
                 ftp.storbinary(f'STOR {pathlib_file_object.name}.zip', file)
                 file.close()
                 ftp.quit()
-
             # # MEGA
             # mega = Mega()
             # m = mega.login("warthundertacview@gmail.com", "warthundertacview")
@@ -486,7 +520,7 @@ def main_fun():
             #     folder = m.find(f'{user_sesid}')
             # finally:
             #     print('finally')
-            #     m.upload(f'{filename}.zip', folder[0])
+            #     m.upload(f'{file_name}.zip', folder[0])
 
     def parse_clog():
         if (latitude and longitude) is not None:
@@ -522,9 +556,7 @@ def main_fun():
 
         class GameState:
             if platform.system() == "Windows":
-                print(war_lang)
                 if war_lang == "English":
-                    print(1)
                     TITLE_HANG = "War Thunder"
                     TITLE_LOAD = "War Thunder - Loading"
                     TITLE_BATT = "War Thunder - In battle"
@@ -532,7 +564,6 @@ def main_fun():
                     TITLE_TEST = "War Thunder - Test Flight"
                     TITLE_WAIT = "War Thunder - Waiting for game"
                 elif war_lang == "French":
-                    print(2)
                     TITLE_HANG = "War Thunder"
                     TITLE_LOAD = "War Thunder - Téléchargement en cours"
                     TITLE_BATT = "War Thunder - Dans la bataille"
@@ -541,7 +572,6 @@ def main_fun():
                     TITLE_WAIT = "War Thunder - En attente du jeu"
             elif platform.system() == "Linux":
                 if war_lang == "English":
-                    print(3)
                     TITLE_HANG = b"War Thunder (Vulkan, 64bit)"
                     TITLE_LOAD = b"War Thunder (Vulkan, 64bit) - Loading"
                     TITLE_BATT = b"War Thunder (Vulkan, 64bit) - In battle"
@@ -549,7 +579,6 @@ def main_fun():
                     TITLE_TEST = b"War Thunder (Vulkan, 64bit) - Test Flight"
                     TITLE_WAIT = b"War Thunder (Vulkan, 64bit) - Waiting for game"
                 elif war_lang == "French":
-                    print(4)
                     TITLE_HANG = "War Thunder (Vulkan, 64bit)"
                     TITLE_LOAD = "War Thunder (Vulkan, 64bit) - Téléchargement en cours"
                     TITLE_BATT = "War Thunder (Vulkan, 64bit) - Dans la bataille"
@@ -594,8 +623,9 @@ def main_fun():
     # last_id_evt = 0
     # last_id_dmg = 0
 
-    unit_lookup = get_unit()
     ntp = ntplib.NTPClient()
+    unit_lookup = get_unit()
+    aces_version = configuration.game_version
 
     _dict_sesid = collections.OrderedDict()
     _list_teams = []
@@ -606,7 +636,7 @@ def main_fun():
 
     game_logs_path = {
         'Linux': pathlib.Path(cfg_root).joinpath('.game_logs/'),
-        'Windows': pathlib.Path(war_path).joinpath('.game_logs/')
+        'Windows': pathlib.Path(war_root).joinpath('.game_logs/')
     }
 
     def mqtt_con(client, userdata, flags, rc):
@@ -625,6 +655,9 @@ def main_fun():
 
     state = State.GameState
 
+    loguru.logger.info(f'[INIT] ThunderTac v{__init__.__version__}')
+    loguru.logger.info(f'[INIT] Client i18n {war_lang}')
+
     while True:
 
         # SIGINT: INIT
@@ -638,7 +671,7 @@ def main_fun():
 
             # STDOUT: RETURNED TO HANGAR
             if not State.Messages.hangar:
-                loguru.logger.info("[S] IDLE @ HANGAR: JOIN (TEST|BATTLE|CUSTOM)")
+                loguru.logger.info("[GAME] Ready to join match")
                 State.Messages.hangar = True
 
             # STDOUT: RECORDING FINISHED
@@ -732,7 +765,8 @@ def main_fun():
 
             if map_objects and not State.Recorder.header_placed:
                 filename = set_filename()
-                insert_header(map_area, get_utc_offset(), ttac_usr, user_sesid, mission_category, ttac_ver='')
+                insert_header(map_area, aces_version, get_utc_offset(), ttac_usr, user_sesid,
+                              mission_category, ttac_ver=__init__.__version__)
                 State.Recorder.header_placed = True
 
             time_this_tick = time.time()
@@ -895,7 +929,7 @@ def main_fun():
                         # APPEND TO .ACMI EVERY FRAME/TICK
                         sortie_telemetry = (
                                 f"#{time_adjusted_tick:0.2f}\n"
-                                + f"{State.Client.player_obj},T={x:0.9f}|{y:0.9f}|{z}|{r:0.1f}|{p:0.1f}|{h:0.1f},"
+                                + f"{State.Client.player_obj},T={x:0.9f}|{y:0.9f}|{z-init_alt}|{r:0.1f}|{p:0.1f}|{h:0.1f},"
                                 + f"Throttle={s_throttle1},"
                                 + f"RollControlInput={stick_ailerons},"
                                 + f"PitchControlInput={stick_elevator},"
@@ -929,9 +963,13 @@ def main_fun():
                                             f"Coalition={team_coalition}"
                                             )
 
+
                         with open(filename, "a", encoding="utf8", newline="") as g:
                             if State.Client.player_obj:
                                 if not State.Recorder.sortie_header:
+                                    # if plane not moving, assume airfield start: alt-init_alt = ground level
+                                    if ias < 10:
+                                        init_alt = z
                                     g.write(sortie_telemetry + sortie_subheader + "\n")
                                     g.write(f"0,Event=Message|{State.Client.player_obj}|has spawned in.\n")
                                     State.Recorder.sortie_header = True
@@ -954,8 +992,7 @@ def main_fun():
 
 
 if __name__ == "__main__":
-    from pyu_config import ClientConfig
-    print(ClientConfig.APP_VERSION)
+    from client_config import ClientConfig
     main_fun()
 
 # try:

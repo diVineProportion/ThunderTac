@@ -16,4 +16,7 @@ snoop==0.2.5
 xmltodict==0.12.0
 git+https://github.com/Digital-Sapphire/PyUpdater.git@master
 pywin32 ;platform_system=='Windows'
-win32gui ;platform_system=='Windows'
+# win32gui ;platform_system=='Windows'
+future~=0.18.2
+pathlib~=1.0.1
+tqdm~=4.56.0

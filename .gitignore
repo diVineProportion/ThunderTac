@@ -1,8 +1,8 @@
-/ACMI/
-/__pycache__/
-/.idea/
-/.idea/modules.xml
-/.idea/inspectionProfiles/profiles_settings.xml
-/.idea/inspectionProfiles/Project_Default.xml
-/.idea/ThunderTacX2.iml
-/.idea/vcs.xml
+/venv/
+/thundertac/.pyupdater/
+/thundertac/pyu-data/
+/thundertac/keypack.pyu
+/thundertac/client_config.py
+/thundertac/win.spec
+/thundertac/ACMI/
+/thundertac/deploy.py
