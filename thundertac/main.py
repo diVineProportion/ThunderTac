@@ -1,15 +1,7 @@
-from typing import Optional, Any
 
-import __init__
 
-user_sesid = ''
-map_area = None
-mission_category = None
-#
-# import snoop
-#
-# @snoop(depth=3)
 def main_fun():
+
     global user_sesid
     global map_area
     global mission_category
@@ -48,6 +40,7 @@ def main_fun():
     # from mega import Mega
     # from requests.exceptions import RequestException
 
+    import updates
     import map_info
     import config
 
@@ -640,7 +633,7 @@ def main_fun():
     }
 
     def mqtt_con(client, userdata, flags, rc):
-        loguru.logger.debug(f"[Q] CONNECTED: {client} ({userdata}) connected; result code:{str(rc)}, flags:{flags}")
+        loguru.logger.debug(f"[Q] CONNECTED: MQTT CONNECT ON TACSERV.TK")
 
     def on_message(client, userdata, msg):
         print(f"{client}, {userdata} {msg.topic}| {msg.payload.decode()}")
@@ -855,132 +848,237 @@ def main_fun():
                     except KeyError:
                         gear = 1
 
-                try:
-                    # if ind is not None and ind["valid"] and temp_test == "playing":
-                    temp_test = gaijin_state_method()
-                    if ind["valid"] and temp_test == "playing":
-                        try:
-                            ind = get_web_reqs(WebAPI.INDI)
-                            try:
-                                if temp_test == "playing":
-                                    r = ind["aviahorizon_roll"] * -1
-                                    p = ind["aviahorizon_pitch"] * -1
-                            except KeyError:
-                                if gaijin_state_method() == "playing":
-                                    # TODO: Include this in the play_once controller
-                                    loguru.logger.error("[P] This plane is not supported")
-                            if not State.Recorder.discover_unit:
-                                unit = ind["type"]
-                                if State.Client.player_obj:
-                                    try:
-                                        current_unit = unit_lookup['units'][unit]['full']
-                                        loguru.logger.info(f"[P] UNIT RE-SPAWN: {current_unit}")
-                                    except KeyError:
-                                        loguru.logger.error("[D] ENTRY MISSING: {}".format(unit))
-                                        loguru.logger.info("[P] UNIT RE-SPAWN: {}".format(unit))
-                                    State.Recorder.discover_unit = True
-                                    State.Recorder.once_per_spawn = False
-                        except TypeError:
-                            pass
+                    r = ind["aviahorizon_roll"] * -1
+                    p = ind["aviahorizon_pitch"] * -1
+                    pedals = ind['pedals1']
+                    stick_ailerons = ind["stick_ailerons"]
+                    stick_elevator = ind["stick_elevator"]
+                    h = hdg(player["dx"], player["dy"])
+                    pedals = ind['pedals1']
+                    stick_ailerons = ind["stick_ailerons"]
+                    stick_elevator = ind["stick_elevator"]
+                    h = hdg(player["dx"], player["dy"])
 
-                        def try_er(retrieve_from, alternative=None):
-                            try:
-                                retrieve_from
-                            except KeyError:
-                                alternative = alternative
+                    # pedals = try_er(ind['pedals1'])
+                    # stick_ailerons = try_er(ind["stick_ailerons"])
+                    # stick_elevator = try_er(ind["stick_elevator"])
+                    # h = try_er(hdg(player["dx"], player["dy"]))
+
+                    fname, lname, sname = None, None, None
+                    unit = ind["type"]
+                    if not State.Recorder.once_per_spawn:
+                        fname, lname, sname = unit_lookup['units'][unit].values()
+                        State.Recorder.once_per_spawn = True
+
+                    team_color = None
+                    team_coalition = None
+                    if users_team == "0":
+                        team_color = "Orange"
+                        team_coalition = "Neutral"
+                    elif users_team == "1":
+                        team_color = "Blue"
+                        # team_coalition = "Star (Allies)"
+                        team_coalition = "Team 1"
+                    elif users_team == "2":
+                        team_color = "Red"
+                        # team_coalition = "Cross (Axis)"
+                        team_coalition = "Team 2"
+                    # TODO: doesn't work, causes wrong team
+                    # else:
+                    #     team_color = "Purple"
+                    #     team_coalition = "Unknown"
+
+                    alt = z - init_alt
+                    # APPEND TO .ACMI EVERY FRAME/TICK
+                    sortie_telemetry = (
+                            f"#{time_adjusted_tick:0.2f}\n"
+                            + f"{State.Client.player_obj},T={x:0.9f}|{y:0.9f}|{alt}|{r:0.1f}|{p:0.1f}|{h:0.1f},"
+                            + f"Throttle={s_throttle1},"
+                            + f"RollControlInput={stick_ailerons},"
+                            + f"PitchControlInput={stick_elevator},"
+                            + f"YawControlInput={pedals},"
+                            + f"IAS={ias:0.6f},"
+                            + f"TAS={tas:0.6f},"
+                            + f"FuelWeight={fuel_kg},"
+                            + f"Mach={m},"
+                            + f"AOA={aoa},"
+                            + f"FuelVolume={fuel_vol},"
+                            + f"LandingGear={gear},"
+                            + f"Flaps={flaps},"
+                        # + "PilotHeadRoll={},".format(PilotHeadRoll)
+                        # + "PilotHeadPitch={},".format(PilotHeadPitch)
+                        # + "PilotHeadYaw={},".format(PilotHeadYaw)
+                    )
+                    # APPEND TO .ACMI ONLY ONCE PER SPAWN
+                    sortie_subheader = (f"Slot={'0'}," +
+                                        f"Importance={'1'}," +
+                                        f"Parachute={'0'}," +
+                                        f"DragChute={'0'}," +
+                                        f"Disabled={'0'}," +
+                                        f"Pilot={ttac_usr}," +
+                                        f"Name={sname}," +
+                                        f"ShortName={sname}," +
+                                        f"LongName={lname}," +
+                                        f"FullName={fname}," +
+                                        f"Type={'Air+FixedWing'}," +
+                                        f"Color={team_color}," +
+                                        f"Callsign={'None'}," +
+                                        f"Coalition={team_coalition}"
+                                        )
+
+                    with open(filename, "a", encoding="utf8", newline="") as g:
+                        # if user has been assigned an object ID
+                        if State.Client.player_obj:
+                            # sortie header only gets put in once per sortie
+                            if not State.Recorder.sortie_header:
+                                # if plane not moving, assume airfield start: alt-init_alt = ground level
+                                if ias < 10:
+                                    init_alt = z
+                                # write the sortie telemetry line plus once per sortie sortie_subheader
+                                g.write(sortie_telemetry + sortie_subheader + "\n")
+                                # custom tacview message
+                                g.write(f"0,Event=Message|{State.Client.player_obj}|has spawned in.\n")
+                                # set that the sortie header has been shown
+                                State.Recorder.sortie_header = True
                             else:
-                                return retrieve_from
-                            finally:
-                                return alternative
+                                # otherwise, if sortie subheader has been show, just show the telemetry line
+                                g.write(sortie_telemetry + "\n")
 
-                        pedals = ind['pedals1']
-                        stick_ailerons = ind["stick_ailerons"]
-                        stick_elevator = ind["stick_elevator"]
-                        h = hdg(player["dx"], player["dy"])
-
-                        # pedals = try_er(ind['pedals1'])
-                        # stick_ailerons = try_er(ind["stick_ailerons"])
-                        # stick_elevator = try_er(ind["stick_elevator"])
-                        # h = try_er(hdg(player["dx"], player["dy"]))
-
-                        fname, lname, sname = None, None, None
-                        if not State.Recorder.once_per_spawn:
-                            fname, lname, sname = unit_lookup['units'][unit].values()
-                            State.Recorder.once_per_spawn = True
-
-                        team_color = None
-                        team_coalition = None
-                        if users_team == "0":
-                            team_color = "Orange"
-                            team_coalition = "Neutral"
-                        elif users_team == "1":
-                            team_color = "Blue"
-                            # team_coalition = "Star (Allies)"
-                            team_coalition = "Team 1"
-                        elif users_team == "2":
-                            team_color = "Red"
-                            # team_coalition = "Cross (Axis)"
-                            team_coalition = "Team 2"
-                        # TODO: doesn't work, causes wrong team
-                        # else:
-                        #     team_color = "Purple"
-                        #     team_coalition = "Unknown"
-
-                        # APPEND TO .ACMI EVERY FRAME/TICK
-                        sortie_telemetry = (
-                                f"#{time_adjusted_tick:0.2f}\n"
-                                + f"{State.Client.player_obj},T={x:0.9f}|{y:0.9f}|{z-init_alt}|{r:0.1f}|{p:0.1f}|{h:0.1f},"
-                                + f"Throttle={s_throttle1},"
-                                + f"RollControlInput={stick_ailerons},"
-                                + f"PitchControlInput={stick_elevator},"
-                                + f"YawControlInput={pedals},"
-                                + f"IAS={ias:0.6f},"
-                                + f"TAS={tas:0.6f},"
-                                + f"FuelWeight={fuel_kg},"
-                                + f"Mach={m},"
-                                + f"AOA={aoa},"
-                                + f"FuelVolume={fuel_vol},"
-                                + f"LandingGear={gear},"
-                                + f"Flaps={flaps},"
-                            # + "PilotHeadRoll={},".format(PilotHeadRoll)
-                            # + "PilotHeadPitch={},".format(PilotHeadPitch)
-                            # + "PilotHeadYaw={},".format(PilotHeadYaw)
-                        )
-                        # APPEND TO .ACMI ONLY ONCE PER SPAWN
-                        sortie_subheader = (f"Slot={'0'}," +
-                                            f"Importance={'1'}," +
-                                            f"Parachute={'0'}," +
-                                            f"DragChute={'0'}," +
-                                            f"Disabled={'0'}," +
-                                            f"Pilot={ttac_usr}," +
-                                            f"Name={sname}," +
-                                            f"ShortName={sname}," +
-                                            f"LongName={lname}," +
-                                            f"FullName={fname}," +
-                                            f"Type={'Air+FixedWing'}," +
-                                            f"Color={team_color}," +
-                                            f"Callsign={'None'}," +
-                                            f"Coalition={team_coalition}"
-                                            )
-
-
-                        with open(filename, "a", encoding="utf8", newline="") as g:
-                            if State.Client.player_obj:
-                                if not State.Recorder.sortie_header:
-                                    # if plane not moving, assume airfield start: alt-init_alt = ground level
-                                    if ias < 10:
-                                        init_alt = z
-                                    g.write(sortie_telemetry + sortie_subheader + "\n")
-                                    g.write(f"0,Event=Message|{State.Client.player_obj}|has spawned in.\n")
-                                    State.Recorder.sortie_header = True
-                                else:
-                                    g.write(sortie_telemetry + "\n")
-
-                except KeyError:
-                    pass
-                except TypeError:
-                    if State.Recorder.active:
-                        pass
+                # try:
+                #     # if ind is not None and ind["valid"] and temp_test == "playing":
+                #     temp_test = gaijin_state_method()
+                #     if ind["valid"] and temp_test == "playing":
+                #         try:
+                #             ind = get_web_reqs(WebAPI.INDI)
+                #             try:
+                #                 if temp_test == "playing":
+                #                     r = ind["aviahorizon_roll"] * -1
+                #                     p = ind["aviahorizon_pitch"] * -1
+                #             except KeyError:
+                #                 if gaijin_state_method() == "playing":
+                #                     # TODO: Include this in the play_once controller
+                #                     loguru.logger.error("[P] This plane is not supported")
+                #             # if the unit name has not been derived from the game variant name
+                #             if not State.Recorder.discover_unit:
+                #                 # get the game variant name (e.g. p_38)
+                #                 unit = ind["type"]
+                #                 if State.Client.player_obj:
+                #                     try:
+                #                         current_unit = unit_lookup['units'][unit]['full']
+                #                         loguru.logger.info(f"[P] UNIT RE-SPAWN: {current_unit}")
+                #                     except KeyError:
+                #                         loguru.logger.error("[D] ENTRY MISSING: {}".format(unit))
+                #                         loguru.logger.info("[P] UNIT RE-SPAWN: {}".format(unit))
+                #                     State.Recorder.discover_unit = True
+                #                     State.Recorder.once_per_spawn = False
+                #         except TypeError:
+                #             pass
+                #
+                #         def try_er(retrieve_from, alternative=None):
+                #             try:
+                #                 retrieve_from
+                #             except KeyError:
+                #                 alternative = alternative
+                #             else:
+                #                 return retrieve_from
+                #             finally:
+                #                 return alternative
+                #
+                #         pedals = ind['pedals1']
+                #         stick_ailerons = ind["stick_ailerons"]
+                #         stick_elevator = ind["stick_elevator"]
+                #         h = hdg(player["dx"], player["dy"])
+                #
+                #         # pedals = try_er(ind['pedals1'])
+                #         # stick_ailerons = try_er(ind["stick_ailerons"])
+                #         # stick_elevator = try_er(ind["stick_elevator"])
+                #         # h = try_er(hdg(player["dx"], player["dy"]))
+                #
+                #         fname, lname, sname = None, None, None
+                #         if not State.Recorder.once_per_spawn:
+                #             fname, lname, sname = unit_lookup['units'][unit].values()
+                #             State.Recorder.once_per_spawn = True
+                #
+                #         team_color = None
+                #         team_coalition = None
+                #         if users_team == "0":
+                #             team_color = "Orange"
+                #             team_coalition = "Neutral"
+                #         elif users_team == "1":
+                #             team_color = "Blue"
+                #             # team_coalition = "Star (Allies)"
+                #             team_coalition = "Team 1"
+                #         elif users_team == "2":
+                #             team_color = "Red"
+                #             # team_coalition = "Cross (Axis)"
+                #             team_coalition = "Team 2"
+                #         # TODO: doesn't work, causes wrong team
+                #         # else:
+                #         #     team_color = "Purple"
+                #         #     team_coalition = "Unknown"
+                #
+                #         alt = z - init_alt
+                #         # APPEND TO .ACMI EVERY FRAME/TICK
+                #         sortie_telemetry = (
+                #                 f"#{time_adjusted_tick:0.2f}\n"
+                #                 + f"{State.Client.player_obj},T={x:0.9f}|{y:0.9f}|{alt}|{r:0.1f}|{p:0.1f}|{h:0.1f},"
+                #                 + f"Throttle={s_throttle1},"
+                #                 + f"RollControlInput={stick_ailerons},"
+                #                 + f"PitchControlInput={stick_elevator},"
+                #                 + f"YawControlInput={pedals},"
+                #                 + f"IAS={ias:0.6f},"
+                #                 + f"TAS={tas:0.6f},"
+                #                 + f"FuelWeight={fuel_kg},"
+                #                 + f"Mach={m},"
+                #                 + f"AOA={aoa},"
+                #                 + f"FuelVolume={fuel_vol},"
+                #                 + f"LandingGear={gear},"
+                #                 + f"Flaps={flaps},"
+                #             # + "PilotHeadRoll={},".format(PilotHeadRoll)
+                #             # + "PilotHeadPitch={},".format(PilotHeadPitch)
+                #             # + "PilotHeadYaw={},".format(PilotHeadYaw)
+                #         )
+                #         # APPEND TO .ACMI ONLY ONCE PER SPAWN
+                #         sortie_subheader = (f"Slot={'0'}," +
+                #                             f"Importance={'1'}," +
+                #                             f"Parachute={'0'}," +
+                #                             f"DragChute={'0'}," +
+                #                             f"Disabled={'0'}," +
+                #                             f"Pilot={ttac_usr}," +
+                #                             f"Name={sname}," +
+                #                             f"ShortName={sname}," +
+                #                             f"LongName={lname}," +
+                #                             f"FullName={fname}," +
+                #                             f"Type={'Air+FixedWing'}," +
+                #                             f"Color={team_color}," +
+                #                             f"Callsign={'None'}," +
+                #                             f"Coalition={team_coalition}"
+                #                             )
+                #
+                #
+                #         with open(filename, "a", encoding="utf8", newline="") as g:
+                #             # if user has been assigned an object ID
+                #             if State.Client.player_obj:
+                #                 # sortie header only gets put in once per sortie
+                #                 if not State.Recorder.sortie_header:
+                #                     # if plane not moving, assume airfield start: alt-init_alt = ground level
+                #                     if ias < 10:
+                #                         init_alt = z
+                #                     # write the sortie telemetry line plus once per sortie sortie_subheader
+                #                     g.write(sortie_telemetry + sortie_subheader + "\n")
+                #                     # custom tacview message
+                #                     g.write(f"0,Event=Message|{State.Client.player_obj}|has spawned in.\n")
+                #                     # set that the sortie header has been shown
+                #                     State.Recorder.sortie_header = True
+                #                 else:
+                #                     # otherwise, if sortie subheader has been show, just show the telemetry line
+                #                     g.write(sortie_telemetry + "\n")
+                #
+                # except KeyError:
+                #     pass
+                # except TypeError:
+                #     if State.Recorder.active:
+                #         pass
 
             except json.decoder.JSONDecodeError:
                 pass
@@ -992,7 +1090,17 @@ def main_fun():
 
 
 if __name__ == "__main__":
-    from client_config import ClientConfig
+
+    import ctypes
+    import __init__
+
+    user_sesid = ''
+    map_area = None
+    mission_category = None
+
+    kernel32 = ctypes.windll.kernel32
+    kernel32.SetConsoleMode(kernel32.GetStdHandle(-10), 128)
+
     main_fun()
 
 # try:

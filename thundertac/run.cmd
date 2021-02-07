@@ -1,0 +1,1 @@
+start wt "python deploy.py"
