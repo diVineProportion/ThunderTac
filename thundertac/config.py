@@ -95,7 +95,9 @@ class CFG:
 
         self.read_cfg()
 
-
+    def remove_cfg(self):
+        pathlib.Path(self.user_settings_file).unlink(missing_ok=True)
+        self.create_cfg()
 
     def create_cfg(self):
         d = {
@@ -299,7 +301,7 @@ class Spinner:
                         s_prefix -= 1
                         s_suffix += 1
 
-            for cursor_iteration in spinner_list:  # '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏':
+            for cursor_iteration in spinner_list:
                 yield cursor_iteration
 
     def __init__(self, delay=None):

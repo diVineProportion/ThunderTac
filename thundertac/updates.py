@@ -1,3 +1,5 @@
+import sys
+
 from pyupdater.client import Client
 from tqdm import tqdm
 
@@ -9,13 +11,13 @@ def print_status_info(info):
     total = info.get(u'total')
     downloaded = info.get(u'downloaded')
     status = info.get(u'status')
-    with tqdm(total=total) as progress_bar:
-        progress_bar.update(downloaded)
+    for i in tqdm(range(total)):
+        pass
+
+    # with tqdm(total=total) as progress_bar:
+    #     progress_bar.update(downloaded)
     # print(downloaded, total, status)
 
-
-if __name__ == "__main__":
-    pass
 
 if __name__ == "updates":
 
@@ -25,15 +27,29 @@ if __name__ == "updates":
     APP_NAME = ClientConfig.APP_NAME
     update_object = client.update_check(name=APP_NAME,
                                         version=__version__,
-                                        channel='strict',
+                                        channel='stable',
                                         strict=True)
 
     if update_object is not None:
+        print(update_object.name)
+        print(update_object.filename)
+        print(update_object.data_dir)
+        print(update_object.update_folder)
+        print(update_object.headers)
+        print(update_object.channel)
+        print(update_object.platform)
+        print(update_object.current_version)
+        print(update_object.latest)
+        print(update_object.app_name)
+
         update_object.download()
+        input('go')
+        # if update_object.is_downloaded():
+        #     update_object.extract_restart()
 
-        if update_object.is_downloaded():
-            update_object.extract_restart()
 
+if __name__ == "__main__":
+    sys.exit(0)
 
 
 

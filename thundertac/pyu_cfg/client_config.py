@@ -4,4 +4,4 @@ class ClientConfig(object):
     COMPANY_NAME = 'ThunderApps'
     HTTP_TIMEOUT = 30
     MAX_DOWNLOAD_RETRIES = 3
-    UPDATE_URLS = ['https://github.com/diVineProportion/thundertacupdates/raw/main/', 'https://github.com/diVineProportion/thundertacupdates/blob/main/', 'https://raw.githubusercontent.com/diVineProportion/thundertacupdates/main/']
+    UPDATE_URLS = ['https://raw.githubusercontent.com/diVineProportion/thundertacupdates/main/']

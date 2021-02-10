@@ -1,4 +1,6 @@
+from __init__ import __version__
 
+print(__version__)
 
 def main_fun():
 
@@ -32,14 +34,15 @@ def main_fun():
     import simplejson
     import simplejson as json
 
-    # loguru.logger.add("file_{time}.log")
+    loguru.logger.add("logs/{time}.log")
 
-    # fmt = "{time} | {level: <8} | {name: ^15} | {function: ^15} | {line: >3} | {message}"
-    # loguru.logger.add(sys.stdout, format=fmt)
+    fmt = "{time} | {level: <8} | {name: ^15} | {function: ^15} | {line: >3} | {message}"
+    loguru.logger.add(sys.stdout, format=fmt)
 
     # from mega import Mega
     # from requests.exceptions import RequestException
 
+    import arguments
     import updates
     import map_info
     import config
@@ -700,6 +703,7 @@ def main_fun():
                 decoding_result = parse_clog()
 
                 split_lines = decoding_result.split('\n')
+
                 user_sesid = get_user_session_id(split_lines, _dict_sesid)[-1]
                 loguru.logger.debug(user_sesid)
                 users_team = get_users_team(split_lines, _list_teams, ttac_usr)[-1]

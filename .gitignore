@@ -1,8 +1,12 @@
 /venv/
+/thundertac/logs/
 /thundertac/.pyupdater/
 /thundertac/pyu-data/
+/thundertac/pyu_cfg/
 /thundertac/keypack.pyu
 /thundertac/client_config.py
 /thundertac/win.spec
 /thundertac/ACMI/
 /thundertac/deploy.py
+/thundertac/changelog.py
+/thundertac/run.cmd
