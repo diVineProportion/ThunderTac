@@ -1,7 +1,6 @@
 from __init__ import __version__
 
 print(__version__)
-
 def main_fun():
 
     global user_sesid
@@ -33,11 +32,6 @@ def main_fun():
     import requests
     import simplejson
     import simplejson as json
-
-    loguru.logger.add("logs/{time}.log")
-
-    fmt = "{time} | {level: <8} | {name: ^15} | {function: ^15} | {line: >3} | {message}"
-    loguru.logger.add(sys.stdout, format=fmt)
 
     # from mega import Mega
     # from requests.exceptions import RequestException
@@ -536,11 +530,16 @@ def main_fun():
                     decode_type = 'ANSI'
                 try:
                     result = bytes(un_xor_ed).decode(decode_type)
+                    return result
+                except UnicodeDecodeError as parse_clog_unicode_decode_error:
+                    import cchardet as chardet
+                    result = chardet.detect(bytes(un_xor_ed))
+                    decode_type = result['encoding']
+                    result = bytes(un_xor_ed).decode(decode_type)
+                    return result
                 except LookupError as parse_clog_lookup_error:
                     print(f'ERROR 0x1D: {parse_clog_lookup_error}')
                     sys.exit()
-                else:
-                    return result
 
     class State:
         class Client:

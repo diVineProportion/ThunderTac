@@ -20,3 +20,4 @@ pywin32 ;platform_system=='Windows'
 future~=0.18.2
 pathlib~=1.0.1
 tqdm~=4.56.0
+rich~=9.10.0

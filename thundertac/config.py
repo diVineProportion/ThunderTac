@@ -237,6 +237,7 @@ class CFG:
             import cchardet as chardet
             result = chardet.detect(bytes(un_xor_ed))
             result = result['encoding']
+            print(result)
         elif self.players_sys == "Windows":
             result = 'ANSI'
         try:

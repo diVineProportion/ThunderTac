@@ -1,3 +1,4 @@
 from main import main_fun
 
-main_fun()
+import updates
+# main_fun()

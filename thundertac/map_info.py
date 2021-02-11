@@ -1,6 +1,7 @@
 import json
 import math
 import os
+import pathlib
 import platform
 import urllib.request
 
@@ -464,9 +465,11 @@ def get_info(show=False):
     # from browser map image, get md5 hash
     _hash = str(imagehash.average_hash(Image.open("map.jpg"))).upper()
     _hash = hex(int(f"0x{_hash}", 16))
+    if pathlib.Path('map.img').exists():
+        pathlib.Path('map.img').unlink()
     try:
         if show:
-            loguru.logger.debug(f"[L] ACTUAL HASH  : {_hash}")
+            loguru.logger.debug(f"[L] ACTUAL HASH  : {str(_hash).upper()}")
         # lookup hash value against key from maps lookup dict
         map_info_match = maps[_hash]
     except KeyError:
@@ -496,6 +499,8 @@ def get_info(show=False):
         if os.path.exists('map.jpg'):
             os.remove('map.jpg')
         return map_info_match
+
+
 
 
 if __name__ == '__main__':
