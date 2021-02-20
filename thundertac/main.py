@@ -1,6 +1,9 @@
 from __init__ import __version__
 
 print(__version__)
+
+import snoop
+@snoop
 def main_fun():
 
     global user_sesid
@@ -227,6 +230,13 @@ def main_fun():
                 "test": "Test Flight",
                 "wait": "Waiting for game"
             },
+            "Japanese": {
+                "load": "Loading",
+                "batt": "In battle",
+                "driv": "Test Drive",
+                "test": "Test Flight",
+                "wait": "Waiting for game"
+            },
             "French": {
                 "load": "Téléchargement en cours",
                 "batt": "Dans la bataille",
@@ -318,7 +328,7 @@ def main_fun():
     def insert_header(region, version, ref_time, alias, session_id='', category='', ttac_ver='0.0.0'):
 
         comment_string = f"War Thunder v{str(version)}\\, " \
-                         f"Thunder Tac v{ttac_ver}\\, " \
+                         f"ThunderTac v{ttac_ver}\\, " \
                          f"Session ID: {session_id}" \
                          f"\n"
 
@@ -328,7 +338,7 @@ def main_fun():
             f"FileType={'text/acmi/tacview'}\n"
             f"FileVersion={'2.1'}\n"
             f"0,DataSource=War Thunder\n"
-            f"0,DataRecorder=Thunder Tac\n"
+            f"0,DataRecorder=ThunderTac\n"
             f"0,ReferenceTime={ref_time}Z\n"
             f"0,RecordingTime={(str(arrow.now())[:-13])}Z\n"
             f"0,Author={alias}\n"
@@ -460,11 +470,15 @@ def main_fun():
             }
             with zipfile.ZipFile(f'{filename}.zip', mode='w') as fo:
                 mode_name = modes[compression]
-                loguru.logger.debug(f'Adding "{filename}" to "{filename}.zip" using mode "{mode_name}"')
+                loguru.logger.debug(f'[SAVE] Compressing ACMI to ZIP.ACMI')
                 fo.write(f'{filename}', compress_type=compression)
 
-
     def acmi2ftp():
+        if mission_category == 'Multiplayer Battle':
+            if user_sesid == 'UNKNOWN':
+                return
+        elif mission_category == 'Test Flight':
+            return
         pathlib_file_object = pathlib.Path(filename)
         if pathlib_file_object.is_file():
             filename_parts = pathlib_file_object.parts
@@ -480,18 +494,24 @@ def main_fun():
                 try:
                     ftp.cwd(filename_parts[0])
                 except ftplib.error_perm as err_acmi_ftp_out_change_working_directory_1:
-                    loguru.logger.debug(err_acmi_ftp_out_change_working_directory_1)
+                    loguru.logger.debug(f'[FTP] Root "{filename_parts[0]}" folder does not exist')
                     ftp.mkd(filename_parts[0])
+                    loguru.logger.debug(f'[FTP] Creating directory: "{filename_parts[0]}"')
                     ftp.cwd(filename_parts[0])
                 finally:
                     try:
                         ftp.cwd(filename_parts[1])
+                        loguru.logger.debug(f'[FTP] Changing directory "{filename_parts[1]}"')
                     except ftplib.error_perm as err_acmi_ftp_out_change_working_directory_2:
                         loguru.logger.debug(err_acmi_ftp_out_change_working_directory_2)
+                        loguru.logger.debug(f'[FTP] Sub-folder "{filename_parts[1]}" does not exist')
                         ftp.mkd(filename_parts[1])
+                        loguru.logger.debug(f'[FTP] Creating sub-directory: "{filename_parts[1]}"')
                         ftp.cwd(filename_parts[1])
 
                 ftp.storbinary(f'STOR {pathlib_file_object.name}.zip', file)
+                # TODO: add url
+                loguru.logger.debug(f'[FTP] **PLACEHOLDER** FOR URL')
                 file.close()
                 ftp.quit()
             # # MEGA
@@ -521,22 +541,26 @@ def main_fun():
                 xor_ed = f.read()
                 xor_ed_byte_array = bytearray(xor_ed)
                 un_xor_ed = un_xor(xor_ed_byte_array)
+                decode_type = None
+                decoded = None
 
-                if configuration.players_sys == "Linux":
+                if configuration.players_sys == "Darwin":
+                    pass
+                elif configuration.players_sys == "Linux":
                     import cchardet as chardet
                     result = chardet.detect(bytes(un_xor_ed))
                     decode_type = result['encoding']
                 elif configuration.players_sys == "Windows":
                     decode_type = 'ANSI'
                 try:
-                    result = bytes(un_xor_ed).decode(decode_type)
-                    return result
+                    decoded = bytes(un_xor_ed).decode(decode_type)
+                    return decoded
                 except UnicodeDecodeError as parse_clog_unicode_decode_error:
                     import cchardet as chardet
                     result = chardet.detect(bytes(un_xor_ed))
                     decode_type = result['encoding']
-                    result = bytes(un_xor_ed).decode(decode_type)
-                    return result
+                    decoded = bytes(un_xor_ed).decode(decode_type)
+                    return decoded
                 except LookupError as parse_clog_lookup_error:
                     print(f'ERROR 0x1D: {parse_clog_lookup_error}')
                     sys.exit()
@@ -592,9 +616,12 @@ def main_fun():
             information = False
 
         class Messages:
-            rec_end = True
+            battle = False
             hangar = False
+            rec_end = True
+            test_flight = False
             trigger_chat = False
+
 
         class Recorder:
             active = False
@@ -634,24 +661,24 @@ def main_fun():
         'Windows': pathlib.Path(war_root).joinpath('.game_logs/')
     }
 
-    def mqtt_con(client, userdata, flags, rc):
-        loguru.logger.debug(f"[Q] CONNECTED: MQTT CONNECT ON TACSERV.TK")
+    # def mqtt_con(client, userdata, flags, rc):
+    #     loguru.logger.debug(f"[Q] CONNECTED: MQTT CONNECT ON TACSERV.TK")
+    #
+    # def on_message(client, userdata, msg):
+    #     print(f"{client}, {userdata} {msg.topic}| {msg.payload.decode()}")
+    #
+    # def on_subscribe(client, userdata, mid, granted_qos, properties=None):
+    #     print(client, userdata, mid, granted_qos, properties)
 
-    def on_message(client, userdata, msg):
-        print(f"{client}, {userdata} {msg.topic}| {msg.payload.decode()}")
-
-    def on_subscribe(client, userdata, mid, granted_qos, properties=None):
-        print(client, userdata, mid, granted_qos, properties)
-
-    mqtt_client = mqtt.Client()
-    mqtt_client.on_connect = mqtt_con
-    mqtt_client.on_message = on_message
-    mqtt_client.on_subscribe = on_subscribe
+    # mqtt_client = mqtt.Client()
+    # mqtt_client.on_connect = mqtt_con
+    # mqtt_client.on_message = on_message
+    # mqtt_client.on_subscribe = on_subscribe
 
     state = State.GameState
 
-    loguru.logger.info(f'[INIT] ThunderTac v{__init__.__version__}')
-    loguru.logger.info(f'[INIT] Client i18n {war_lang}')
+    loguru.logger.info(f'[TT] ThunderTac: v{__init__.__version__}')
+    loguru.logger.info(f'[WT] Client i18n: {war_lang}')
 
     while True:
 
@@ -666,7 +693,7 @@ def main_fun():
 
             # STDOUT: RETURNED TO HANGAR
             if not State.Messages.hangar:
-                loguru.logger.info("[GAME] Ready to join match")
+                loguru.logger.info("[TT] Game State: Waiting for Battle or Test Flight")
                 State.Messages.hangar = True
 
             # STDOUT: RECORDING FINISHED
@@ -676,6 +703,11 @@ def main_fun():
 
         # PROGRAM STATE: TEST FLIGHT
         elif curr_game_state == State.GameState.TITLE_TEST:
+
+            if not State.Messages.test_flight:
+                loguru.logger.info("[TT] Game State: Joined Flight Test")
+                State.Messages.test_flight = True
+
             mission_category = 'Test Flight'
 
             # CHECK: LOCATION DATA
@@ -690,6 +722,11 @@ def main_fun():
 
         # PROGRAM STATE: IN BATTLE
         elif curr_game_state == State.GameState.TITLE_BATT:
+
+            if not State.Messages.battle:
+                loguru.logger.info("[TT] Game State: Joined Battle")
+                State.Messages.battle = True
+
             mission_category = 'Multiplayer Battle'
 
             # CHECK: LOCATION DATA
@@ -702,18 +739,32 @@ def main_fun():
                 decoding_result = parse_clog()
 
                 split_lines = decoding_result.split('\n')
+                try:
+                    user_sesid = get_user_session_id(split_lines, _dict_sesid)[-1]
+                    loguru.logger.debug(f'[TT] SESSION ID: "{user_sesid}"')
+                except IndexError:
+                    loguru.logger.warning(f'[TT] Failed to detect SESSION ID')
+                    if mission_category == 'Test Flight':
+                        user_sesid = 'N/A'
+                    elif mission_category == 'Multiplayer Battle':
+                        user_sesid = 'UNKNOWN'
+                finally:
+                    loguru.logger.debug(f'[TT] SESSION ID: "{user_sesid}"')
 
-                user_sesid = get_user_session_id(split_lines, _dict_sesid)[-1]
-                loguru.logger.debug(user_sesid)
-                users_team = get_users_team(split_lines, _list_teams, ttac_usr)[-1]
-                loguru.logger.debug(users_team)
+                try:
+                    users_team = get_users_team(split_lines, _list_teams, ttac_usr)[-1]
+                    loguru.logger.debug(f'[TT] TEAM ID: "{users_team}"')
+                except IndexError as err_main_loop_users_team_index_error:
+                    users_team = -1
+                    loguru.logger.warning(f'[TT] Failed to detect TEAM ID')
+                    loguru.logger.debug(f'[TT] TEAM ID: "{users_team}"')
 
-                mqtt_client.connect("tacserv.tk", 1883, 60, )
-                mqtt_client.loop_start()
-
-                # client.subscribe(f"TTAC/{user_sesid}/TIME_START")
-                mqtt_client.publish(f'TTAC/{user_sesid}/players/{user_gid}',
-                                    f"{ttac_usr} is fighting for team {users_team}.", retain=True)
+                # mqtt_client.connect("tacserv.tk", 1883, 60, )
+                # mqtt_client.loop_start()
+                #
+                # # client.subscribe(f"TTAC/{user_sesid}/TIME_START")
+                # mqtt_client.publish(f'TTAC/{user_sesid}/players/{user_gid}',
+                #                     f"{ttac_usr} is fighting for team {users_team}.", retain=True)
 
             if State.Recorder.start_recording:
                 if State.Map.information:
@@ -837,6 +888,7 @@ def main_fun():
                     fuel_kg = sta["Mfuel, kg"]
                     fuel_vol = sta["Mfuel, kg"] / sta["Mfuel0, kg"]
                     m = sta["M"]
+
                     try:
                         aoa = sta["AoA, deg"]
                     except KeyError:
@@ -851,12 +903,24 @@ def main_fun():
                     except KeyError:
                         gear = 1
 
-                    r = ind["aviahorizon_roll"] * -1
-                    p = ind["aviahorizon_pitch"] * -1
-                    pedals = ind['pedals1']
-                    stick_ailerons = ind["stick_ailerons"]
-                    stick_elevator = ind["stick_elevator"]
-                    h = hdg(player["dx"], player["dy"])
+                    try:
+                        r = ind["aviahorizon_roll"] * -1
+                        test = '0.1f'
+                    except KeyError:
+                        r = sta['Wx, deg/s']
+                        test = '0.1f' #  test = 's'
+                    try:
+                        p = ind["aviahorizon_pitch"] * -1
+                        test = '0.1f'
+                    except KeyError:
+                        p = sta['Vy, m/s']
+                        test = '0.1f' #  test = 's'
+
+                    try:
+                        z = ind["altitude_10k"]
+                    except KeyError:
+                        z = ind["altitude_hour"]
+
                     pedals = ind['pedals1']
                     stick_ailerons = ind["stick_ailerons"]
                     stick_elevator = ind["stick_elevator"]
@@ -875,27 +939,26 @@ def main_fun():
 
                     team_color = None
                     team_coalition = None
-                    if users_team == "0":
+                    if users_team == -1:
+                        team_color = "Violet"
+                        team_coalition = "Unknown"
+                    elif users_team == 0:
                         team_color = "Orange"
                         team_coalition = "Neutral"
-                    elif users_team == "1":
+                    elif users_team == 1:
                         team_color = "Blue"
-                        # team_coalition = "Star (Allies)"
                         team_coalition = "Team 1"
-                    elif users_team == "2":
+                    elif users_team == 2:
                         team_color = "Red"
-                        # team_coalition = "Cross (Axis)"
                         team_coalition = "Team 2"
-                    # TODO: doesn't work, causes wrong team
-                    # else:
-                    #     team_color = "Purple"
-                    #     team_coalition = "Unknown"
 
-                    alt = z - init_alt
+                    # alt = z - init_alt
+                    alt = z
+
                     # APPEND TO .ACMI EVERY FRAME/TICK
                     sortie_telemetry = (
                             f"#{time_adjusted_tick:0.2f}\n"
-                            + f"{State.Client.player_obj},T={x:0.9f}|{y:0.9f}|{alt}|{r:0.1f}|{p:0.1f}|{h:0.1f},"
+                            + f"{State.Client.player_obj},T={x:0.9f}|{y:0.9f}|{alt}|{r:{test}}|{p:{test}}|{h:0.1f},"
                             + f"Throttle={s_throttle1},"
                             + f"RollControlInput={stick_ailerons},"
                             + f"PitchControlInput={stick_elevator},"
@@ -1094,15 +1157,15 @@ def main_fun():
 
 if __name__ == "__main__":
 
-    import ctypes
     import __init__
+
+    from rich.traceback import install
+
+    install()
 
     user_sesid = ''
     map_area = None
     mission_category = None
-
-    kernel32 = ctypes.windll.kernel32
-    kernel32.SetConsoleMode(kernel32.GetStdHandle(-10), 128)
 
     main_fun()
 

@@ -250,7 +250,7 @@ def main_def():
         except json.decoder.JSONDecodeError:
             print('json.decoder.JSONDecodeError')
         except (ReadTimeout, ConnectTimeout):
-            print('ReadTimeout, ConnectTimeout')
+            pass
         except simplejson.errors.JSONDecodeError:
             print('simplejson.errors.JSONDecodeError')
 

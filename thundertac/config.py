@@ -229,30 +229,35 @@ class CFG:
 
         xor_ed_byte_array = bytearray(xor_ed)
         un_xor_ed = un_xor(xor_ed_byte_array)
+        decode_type = None
+        decoded = None
 
-        result = None
         if self.players_sys == "Darwin":
             pass
         elif self.players_sys == "Linux":
             import cchardet as chardet
             result = chardet.detect(bytes(un_xor_ed))
-            result = result['encoding']
-            print(result)
+            decode_type = result['encoding']
         elif self.players_sys == "Windows":
-            result = 'ANSI'
+            decode_type = 'ANSI'
         try:
-            text_curr = bytes(un_xor_ed).decode(result)
+            decoded = bytes(un_xor_ed).decode(decode_type)
+        except UnicodeDecodeError as get_user_alias_unicode_decode_error:
+            import cchardet as chardet
+            result = chardet.detect(bytes(un_xor_ed))
+            decode_type = result['encoding']
+            decoded = bytes(un_xor_ed).decode(decode_type)
+        finally:
             # with open('unxored', 'w', encoding='utf-8') as f:
-            #     f.write(text_curr)
-            xxx = re.search(r"(\w+)\[(\d+)] successfully passed yuplay authorization", text_curr, re.M)
+            #     f.write(decoded)
+            xxx = re.search(r"(\w+)\[(\d+)] successfully passed yuplay authorization", decoded, re.M)
             if xxx:
                 print(xxx.groups())
                 user_alias, user_gj_id = xxx.group(1), xxx.group(2)
                 return user_alias, user_gj_id
-
-        except LookupError as err_lookup_err_cfg_xor_decryption:
-            loguru.logger.exception(err_lookup_err_cfg_xor_decryption)
-            sys.exit()
+        # except LookupError as err_lookup_err_cfg_xor_decryption:
+        #     loguru.logger.exception(err_lookup_err_cfg_xor_decryption)
+        #     sys.exit()
 
     def aces_language(self):
         path_config_blk = self.game_settings_root.joinpath('config.blk')
