@@ -2,8 +2,6 @@ from __init__ import __version__
 
 print(__version__)
 
-import snoop
-@snoop
 def main_fun():
 
     global user_sesid
