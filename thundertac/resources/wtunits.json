@@ -1,5 +1,5 @@
 {
-    "version": "2.3.0.24",
+    "version": "2.5.0.28",
     "units": {
         "ships/uss_cv_immortal": {
             "full": "Carrier",
@@ -1466,6 +1466,11 @@
             "long": "M5A1",
             "short": "Light tank"
         },
+        "us_m5a1_stuart_td": {
+            "full": "Light Tank M5A1 TD Stuart",
+            "long": "M5A1 TD",
+            "short": "Light tank"
+        },
         "us_m22_locust": {
             "full": "Light Tank M22 Locust",
             "long": "M22",
@@ -1495,6 +1500,11 @@
             "full": "Heavy Tank T29",
             "long": "T29",
             "short": "Heavy tank"
+        },
+        "us_t55e1": {
+            "full": "3 inch Gun Motor Carriage T55E1",
+            "long": "T55E1",
+            "short": "SPG"
         },
         "us_t32e1": {
             "full": "Heavy Tank T32E1",
@@ -1944,6 +1954,11 @@
         "ussr_t_28E": {
             "full": "T-28E",
             "long": "T-28E",
+            "short": "Medium tank"
+        },
+        "ussr_t_28_1938": {
+            "full": "T-28 (1938)",
+            "long": "T-28 (1938)",
             "short": "Medium tank"
         },
         "ussr_t_28": {
@@ -2466,6 +2481,11 @@
             "long": "Raketenjagdpanzer 2 (HOT)",
             "short": "SPG"
         },
+        "germ_sk105_a2": {
+            "full": "JaPz.K A2",
+            "long": "JaPz.K A2",
+            "short": "SPG"
+        },
         "germ_kanonenjagdpanzer": {
             "full": "Hanomag-Henschel JPz 4-5",
             "long": "JPz 4-5",
@@ -2796,6 +2816,61 @@
             "long": "Cromwell V (RP-3)",
             "short": "Cruiser tank"
         },
+        "uk_eland_90_mk_7": {
+            "full": "Eland 90 Mk.7",
+            "long": "Eland 90 Mk.7",
+            "short": "Light tank"
+        },
+        "uk_marmon_herrington_mk_6_6pdr": {
+            "full": "SARC MkVI (6pdr)",
+            "long": "SARC MkVI (6pdr)",
+            "short": "Light tank"
+        },
+        "uk_marmon_herrington_mk_6_2pdr": {
+            "full": "SARC MkVI (2pdr)",
+            "long": "SARC MkVI (2pdr)",
+            "short": "Light tank"
+        },
+        "uk_ratel_20": {
+            "full": "Ratel 20",
+            "long": "Ratel 20",
+            "short": "Light tank"
+        },
+        "uk_ttd": {
+            "full": "TTD",
+            "long": "TTD",
+            "short": "MBT"
+        },
+        "uk_ratel_zt3": {
+            "full": "ZT3A2 Ratel",
+            "long": "ZT3A2",
+            "short": "SPG"
+        },
+        "uk_rooikat_za_35": {
+            "full": "Rooikat ZA-35",
+            "long": "ZA-35",
+            "short": "SPAA"
+        },
+        "uk_rooikat_mttd": {
+            "full": "Rooikat MTTD",
+            "long": "Rooikat MTTD",
+            "short": "Light tank"
+        },
+        "uk_olifant_mk_2": {
+            "full": "Olifant Mk.2",
+            "long": "Olifant Mk.2",
+            "short": "MBT"
+        },
+        "uk_olifant_mk_1a": {
+            "full": "Olifant Mk.1A",
+            "long": "Olifant Mk.1A",
+            "short": "MBT"
+        },
+        "uk_ratel_90": {
+            "full": "Ratel 90",
+            "long": "Ratel 90",
+            "short": "Light tank"
+        },
         "uk_a30_challenger": {
             "full": "Tank, Cruiser, Challenger (A30)",
             "long": "Challenger",
@@ -2845,6 +2920,11 @@
             "full": "Crusader AA Mk II",
             "long": "Crusader AA Mk II",
             "short": "SPAA"
+        },
+        "uk_centurion_mk_5_raac": {
+            "full": "Centurion Mk.5/1 (RAAC)",
+            "long": "Centurion Mk.5/1",
+            "short": "Medium tank"
         },
         "uk_centurion_mk_10": {
             "full": "Centurion Mk 10",
@@ -3036,6 +3116,11 @@
             "long": "Abrams",
             "short": "MBT"
         },
+        "germ_leopard_2pl": {
+            "full": "Leopard 2 PL",
+            "long": "Leopard 2 PL",
+            "short": "MBT"
+        },
         "germ_leopard_2k": {
             "full": "Leopard 2K",
             "long": "Leopard 2K",
@@ -3160,6 +3245,16 @@
             "full": "AMX-10RC",
             "long": "AMX-10RC",
             "short": "Light tank"
+        },
+        "fr_mars_15": {
+            "full": "MARS 15",
+            "long": "MARS 15",
+            "short": "Light tank"
+        },
+        "fr_sk105_a2": {
+            "full": "SK-105A2",
+            "long": "SK-105A2",
+            "short": "SPG"
         },
         "fr_amx_30_ACRA": {
             "full": "AMX-30 ACRA",
@@ -3967,9 +4062,19 @@
             "short": "IL-28"
         },
         "il_28_killstreak": {
-            "full": "IL-28",
-            "long": "IL-28",
-            "short": "IL-28"
+            "full": "☢IL-28",
+            "long": "☢IL-28",
+            "short": "☢IL-28"
+        },
+        "il_28_china_killstreak": {
+            "full": "☢IL-28",
+            "long": "☢IL-28",
+            "short": "☢IL-28"
+        },
+        "il_28_german_killstreak": {
+            "full": "☢IL-28",
+            "long": "☢IL-28",
+            "short": "☢IL-28"
         },
         "il_28sh": {
             "full": "IL-28Sh",
@@ -4065,6 +4170,11 @@
             "full": "Me 262 A-1a Schwalbe",
             "long": "Me 262 A",
             "short": "Me 262"
+        },
+        "me-262a-1a_early": {
+            "full": "Me 262 A-1a/Jabo",
+            "long": "Me 262 A",
+            "short": "Me 262"
         },
         "p-47d": {
             "full": "P-47D-25 Thunderbolt",
@@ -4727,9 +4837,39 @@
             "short": "B-29"
         },
         "b-29_killstreak": {
-            "full": "B-29A-BN Superfortress",
-            "long": "B-29A",
-            "short": "B-29"
+            "full": "☢B-29A-BN Superfortress",
+            "long": "☢B-29A",
+            "short": "☢B-29"
+        },
+        "b-29_france_killstreak": {
+            "full": "☢B-29A-BN Superfortress",
+            "long": "☢B-29A",
+            "short": "☢B-29"
+        },
+        "b-29_japan_killstreak": {
+            "full": "☢B-29A-BN Superfortress",
+            "long": "☢B-29A",
+            "short": "☢B-29"
+        },
+        "b-29_sweden_killstreak": {
+            "full": "☢B-29A-BN Superfortress",
+            "long": "☢B-29A",
+            "short": "☢B-29"
+        },
+        "b-29_uk_killstreak": {
+            "full": "☢B-29A-BN Superfortress",
+            "long": "☢B-29A",
+            "short": "☢B-29"
+        },
+        "b-29_italy_killstreak": {
+            "full": "☢B-29A-BN Superfortress",
+            "long": "☢B-29A",
+            "short": "☢B-29"
+        },
+        "b-29_germany_killstreak": {
+            "full": "☢B-29A-BN Superfortress",
+            "long": "☢B-29A",
+            "short": "☢B-29"
         },
         "d_520": {
             "full": "▄D.520",
@@ -4785,6 +4925,11 @@
             "full": "MiG-3",
             "long": "MiG-3",
             "short": "MiG-3"
+        },
+        "itp_m1": {
+            "full": "ITP (M-1)",
+            "long": "ITP (M-1)",
+            "short": "ITP"
         },
         "mig-9": {
             "full": "MiG-9",
@@ -4955,6 +5100,31 @@
             "full": "Su-7BKL",
             "long": "Su-7BKL",
             "short": "Su-7"
+        },
+        "su_17m2": {
+            "full": "Su-17M2",
+            "long": "Su-17M2",
+            "short": "Su-17"
+        },
+        "su-7bkl_killstreak": {
+            "full": "☢Su-7BKL",
+            "long": "☢Su-7BKL",
+            "short": "☢Su-7"
+        },
+        "su-7bkl_china_killstreak": {
+            "full": "☢Su-7BKL",
+            "long": "☢Su-7BKL",
+            "short": "☢Su-7"
+        },
+        "su-9": {
+            "full": "Su-9",
+            "long": "Su-9",
+            "short": "Su-9"
+        },
+        "su-11": {
+            "full": "Su-11",
+            "long": "Su-11",
+            "short": "Su-11"
         },
         "typhoon_mk1a": {
             "full": "Typhoon Mk Ia",
@@ -5184,6 +5354,11 @@
         "a6m5ko": {
             "full": "A6M5 Ko Reisen",
             "long": "A6M5",
+            "short": "A6M5"
+        },
+        "a6m5hei": {
+            "full": "A6M5 Hei",
+            "long": "A6M5 Hei",
             "short": "A6M5"
         },
         "p-38g_metal": {
@@ -5785,6 +5960,11 @@
             "full": "A-7D Corsair II",
             "long": "A-7D",
             "short": "A-7D"
+        },
+        "f8u-2": {
+            "full": "F8U-2 Crusader II",
+            "long": "F8U-2",
+            "short": "F8U-2"
         },
         "f11f_1_late": {
             "full": "F11F-1 Tiger",
@@ -6521,15 +6701,50 @@
             "long": "Canberra B",
             "short": "Canberra"
         },
+        "canberra_bimk6_killstreak": {
+            "full": "☢Canberra B Mk 6",
+            "long": "☢Canberra B",
+            "short": "☢Canberra"
+        },
+        "canberra_bimk6_france_killstreak": {
+            "full": "☢Canberra B Mk 6",
+            "long": "☢Canberra B",
+            "short": "☢Canberra"
+        },
+        "canberra_bimk6_germany_killstreak": {
+            "full": "☢Canberra B Mk 6",
+            "long": "☢Canberra B",
+            "short": "☢Canberra"
+        },
+        "canberra_bimk6_italy_killstreak": {
+            "full": "☢Canberra B Mk 6",
+            "long": "☢Canberra B",
+            "short": "☢Canberra"
+        },
+        "canberra_bimk6_japan_killstreak": {
+            "full": "☢Canberra B Mk 6",
+            "long": "☢Canberra B",
+            "short": "☢Canberra"
+        },
+        "canberra_bimk6_sweden_killstreak": {
+            "full": "☢Canberra B Mk 6",
+            "long": "☢Canberra B",
+            "short": "☢Canberra"
+        },
+        "canberra_bimk6_usa_killstreak": {
+            "full": "☢Canberra B Mk 6",
+            "long": "☢Canberra B",
+            "short": "☢Canberra"
+        },
         "i-16_type10": {
             "full": "I-16 type 10 Ishak",
             "long": "I-16",
             "short": "I-16"
         },
         "i-16_type10_china": {
-            "full": "I-16 type 10",
-            "long": "I-16",
-            "short": "I-16"
+            "full": "␗I-16 type 10",
+            "long": "␗I-16",
+            "short": "␗I-16"
         },
         "f2h-2": {
             "full": "F2H-2 Banshee",
@@ -6593,6 +6808,11 @@
         },
         "attaker_fb1": {
             "full": "Attacker FB 1",
+            "long": "Attacker FB",
+            "short": "Attacker"
+        },
+        "attaker_fb2": {
+            "full": "Attacker FB.2",
             "long": "Attacker FB",
             "short": "Attacker"
         },
@@ -6957,9 +7177,9 @@
             "short": "␗I-16"
         },
         "i-16_chung_28": {
-            "full": "I-16 Chung 28",
-            "long": "I-16",
-            "short": "I-16"
+            "full": "␗I-16 Chung 28",
+            "long": "␗I-16",
+            "short": "␗I-16"
         },
         "sb_2m_103u_china": {
             "full": "␗SB 2M-103U",
@@ -7012,7 +7232,7 @@
             "short": "␗A6M5"
         },
         "p-47d_23_ra_china_rocaf": {
-            "full": "␗P-47D-23 RE Thunderbolt",
+            "full": "␗P-47D-23 RA Thunderbolt",
             "long": "␗P-47D",
             "short": "␗P-47"
         },
@@ -7185,6 +7405,16 @@
             "full": "Tu-4",
             "long": "Tu-4",
             "short": "Tu-4"
+        },
+        "tu_4_killstreak": {
+            "full": "☢Tu-4",
+            "long": "☢Tu-4",
+            "short": "☢Tu-4"
+        },
+        "tu_4_china_killstreak": {
+            "full": "☢Tu-4",
+            "long": "☢Tu-4",
+            "short": "☢Tu-4"
         },
         "tu_4_china": {
             "full": "␗Tu-4",
@@ -7981,9 +8211,19 @@
             "long": "F-104G",
             "short": "F-104"
         },
+        "f-5a_china": {
+            "full": "␗F-5A Freedom Fighter",
+            "long": "␗F-5A",
+            "short": "␗F-5"
+        },
         "mirage_3c": {
             "full": "Mirage IIIC",
             "long": "Mirage IIIC",
+            "short": "Mirage"
+        },
+        "mirage_3e": {
+            "full": "Mirage IIIE",
+            "long": "Mirage IIIE",
             "short": "Mirage"
         },
         "caudron_cr714": {
@@ -8065,6 +8305,11 @@
             "full": "Mörkö-Morane",
             "long": "Mörkö-Morane",
             "short": "Mörkö-Morane"
+        },
+        "fokker_d21_mod20": {
+            "full": "Fokker D.XXI",
+            "long": "Fokker D.XXI",
+            "short": "Fokker"
         },
         "yak-23": {
             "full": "Yak-23",
@@ -8491,6 +8736,11 @@
             "long": "SU-85A",
             "short": "SPAA"
         },
+        "us_m3a3_bradley": {
+            "full": "Fighting Vehicle, Cavalry, M3A3",
+            "long": "M3A3 Bradley",
+            "short": "Light tank"
+        },
         "us_m3_bradley": {
             "full": "Fighting Vehicle, Cavalry, M3",
             "long": "M3 Bradley",
@@ -8705,6 +8955,21 @@
             "full": "Fiat-Ansaldo M14/41 (47/40)",
             "long": "M14/41 (47/40)",
             "short": "Medium Tank"
+        },
+        "it_pzkpfw_III_ausf_N": {
+            "full": "▄Pz.III N",
+            "long": "▄Pz.III N",
+            "short": "Medium Tank"
+        },
+        "it_pzkpfw_IV_ausf_G": {
+            "full": "▄Pz.IV G",
+            "long": "▄Pz.IV G",
+            "short": "Medium Tank"
+        },
+        "it_stug_III_ausf_G": {
+            "full": "▄StuG III G",
+            "long": "▄StuG III G",
+            "short": "SPG"
         },
         "it_m14_41": {
             "full": "Fiat-Ansaldo M14/41",
@@ -8976,6 +9241,41 @@
             "long": "Jaguar A",
             "short": "Jaguar"
         },
+        "jaguar_a_killstreak": {
+            "full": "☢Jaguar A",
+            "long": "☢Jaguar A",
+            "short": "☢Jaguar"
+        },
+        "jaguar_a_germany_killstreak": {
+            "full": "☢Jaguar A",
+            "long": "☢Jaguar A",
+            "short": "☢Jaguar"
+        },
+        "jaguar_a_italy_killstreak": {
+            "full": "☢Jaguar A",
+            "long": "☢Jaguar A",
+            "short": "☢Jaguar"
+        },
+        "jaguar_a_japan_killstreak": {
+            "full": "☢Jaguar A",
+            "long": "☢Jaguar A",
+            "short": "☢Jaguar"
+        },
+        "jaguar_a_sweden_killstreak": {
+            "full": "☢Jaguar A",
+            "long": "☢Jaguar A",
+            "short": "☢Jaguar"
+        },
+        "jaguar_a_uk_killstreak": {
+            "full": "☢Jaguar A",
+            "long": "☢Jaguar A",
+            "short": "☢Jaguar"
+        },
+        "jaguar_a_usa_killstreak": {
+            "full": "☢Jaguar A",
+            "long": "☢Jaguar A",
+            "short": "☢Jaguar"
+        },
         "sea_hawk_fga6": {
             "full": "Sea Hawk FGA.6",
             "long": "Sea Hawk FGA.6",
@@ -9125,6 +9425,11 @@
             "full": "Type 16",
             "long": "Type 16",
             "short": "SPG"
+        },
+        "ussr_bt_7_m": {
+            "full": "BT-7M",
+            "long": "BT-7M",
+            "short": "Light tank"
         },
         "ussr_bt_7a_f32": {
             "full": "BT-7 (F-32)",
@@ -9462,8 +9767,8 @@
             "short": "SK60"
         },
         "saab_105oe": {
-            "full": "SAAB-105ÖE",
-            "long": "SAAB-105ÖE",
+            "full": "SAAB-105OE",
+            "long": "SAAB-105OE",
             "short": "SAAB-105"
         },
         "saab_105g": {
@@ -9901,6 +10206,11 @@
             "long": "␗M42",
             "short": "SPAA"
         },
+        "cn_ptl_02": {
+            "full": "PTL02",
+            "long": "PTL02",
+            "short": "SPG"
+        },
         "cn_wz_305": {
             "full": "WZ305",
             "long": "WZ305",
@@ -10144,6 +10454,11 @@
         "jp_type_60_sprg": {
             "full": "Type 60 Self-Propelled Recoilless Gun (C)",
             "long": "Type 60",
+            "short": "SPG"
+        },
+        "jp_hiro_sha": {
+            "full": "Ji-Ro",
+            "long": "Ji-Ro",
             "short": "SPG"
         },
         "jp_navy_120mm_spg": {
@@ -10471,10 +10786,15 @@
             "long": "Pvkv II",
             "short": "SPG"
         },
+        "sw_ikv_91_105": {
+            "full": "Infanterikanonvagn 91-105",
+            "long": "Ikv 91-105",
+            "short": "Light tank"
+        },
         "sw_ikv_91": {
             "full": "Infanterikanonvagn 91",
             "long": "Ikv 91",
-            "short": "SPG"
+            "short": "Light tank"
         },
         "sw_strv_m42_eh": {
             "full": "Stridsvagn m/42 EH",
@@ -10882,7 +11202,7 @@
             "short": "Motor Gun Boat"
         },
         "uk_dark_class_mtb": {
-            "full": "Dark Class, Dark Agressor (FPB 1102)",
+            "full": "Dark Class, Dark Aggressor (FPB 1102)",
             "long": "Dark MTB",
             "short": "Motor Torpedo Boat"
         },
@@ -11447,7 +11767,7 @@
             "short": "Cargo ship"
         },
         "us_cruiser_brooklyn_class_helena": {
-            "full": "Brooklyn-class, USS Helena (CL-50), 1943",
+            "full": "St.Louis sub-class, USS Helena (CL-50), 1943",
             "long": "Helena",
             "short": "Light cruiser"
         },
@@ -11777,8 +12097,8 @@
             "short": "Heavy Cruiser"
         },
         "it_destroyer_comandanti_medaglie_doro": {
-            "full": "Comandanti Medaglie d'Oro,1st series",
-            "long": "Comandanti Medaglie d'Oro",
+            "full": "Comandanti Margottini 1st serie, Medaglie d'Oro-class",
+            "long": "Comandanti Margottini",
             "short": "Destroyer"
         },
         "jp_escort_akebono_class": {
@@ -11852,7 +12172,7 @@
             "short": "Light Cruiser"
         },
         "jp_destroyer_satsuki": {
-            "full": "Mutsuki class (1935)",
+            "full": "Mutsuki class, Satsuki (1935)",
             "long": "Satsuki",
             "short": "Destroyer"
         },
@@ -11897,7 +12217,7 @@
             "short": "Destroyer"
         },
         "uk_dark_class_mtb_td": {
-            "full": "Dark Class, Dark Agressor (FPB 1102) TD",
+            "full": "Dark Class, Dark Aggressor (FPB 1102) TD",
             "long": "Dark MTB TD",
             "short": "Motor Torpedo Boat"
         },
@@ -11935,6 +12255,36 @@
             "full": "Ise-class, IJN Hyuga, 1920",
             "long": "Hyuga",
             "short": "Battleship"
+        },
+        "germ_destroyer_class1936a_z25": {
+            "full": "Type Zerstörer 1936A, Z25",
+            "long": "Type 1936A",
+            "short": "Destroyer"
+        },
+        "jp_cruiser_isuzu": {
+            "full": "Nagara class, Isuzu (1944)",
+            "long": "Isuzu",
+            "short": "Light Cruiser"
+        },
+        "germ_battleship_kaiser": {
+            "full": "SMS Kaiser (1911)",
+            "long": "SMS Kaiser",
+            "short": "Battleship"
+        },
+        "ussr_skr_pr50plo_rosomacha": {
+            "full": "SKR Pr.50 «Rosomacha»",
+            "long": "Pr.50",
+            "short": "Patrol ship"
+        },
+        "uk_frigate_whitby_blackpool": {
+            "full": "Whitby class, HMS Blackpool",
+            "long": "Whitby class",
+            "short": "Frigate"
+        },
+        "it_cruiser_etna_class": {
+            "full": "Etna, Etna type",
+            "long": "Etna",
+            "short": "Light cruiser"
         }
     }
 }
