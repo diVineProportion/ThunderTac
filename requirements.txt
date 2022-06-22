@@ -7,7 +7,7 @@ imagehash==4.2.0
 loguru==0.5.3
 mega.py
 ntplib==0.3.4
-numpy==1.19.2
+numpy==1.22.0
 paho_mqtt==1.5.1
 Pillow==8.0.1
 psutil==5.7.3
